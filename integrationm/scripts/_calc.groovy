@@ -22,8 +22,8 @@ if (calculationFields.size() > 0
     && msg.action =~ "add|update" ){
 
     def updates = executeCalculations(calculationFields, msg.instance.fields)
-    def result = actionPacks.recordm.update(messageMap.type, "recordmInstanceId:" + messageMap.instance.id, updates);
-    if(updates) log.info("[\$calc] UPDATE '${msg.type}' id:${msg.instance.id}, updates: ${updates}, result:${result.getStatus()} | ${result.getStatusInfo()} ");
+    def result = recordm.update(msg.type, msg.instance.id, updates);
+    if(updates) log.info("[\$calc] UPDATE '${msg.type}' id:${msg.instance.id}, updates: ${updates}, result:${result.getStatus()} ");
 }
 // ========================================================================================================
 
