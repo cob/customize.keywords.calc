@@ -21,9 +21,7 @@ if (calculationFields.size() > 0
     && msg.user != "integrationm"
     && msg.action =~ "add|update" ){
 
-    def updates = executeCalculations(calculationFields, msg.instance.fields)
-    def result = recordm.update(msg.type, msg.instance.id, updates);
-    if(updates) log.info("[\$calc] UPDATE '${msg.type}' id:${msg.instance.id}, updates: ${updates}, result:${result.getStatus()} ");
+    recordm.update(msg.type, msg.instance.id, executeCalculations(calculationFields, msg.instance.fields));
 }
 // ========================================================================================================
 
@@ -49,7 +47,7 @@ def executeCalculations(calculationFields,instanceFields) {
         calculationFields.each { calculation ->
             def novoResultado = evaluateExpression(calculation,instanceFields,temporaryResults)
             if(temporaryResults[calculation.fieldId] != novoResultado ) {
-                // log.info("[\$calc] {{passCount:${passCount}, field:${calculation.name} (${calculation.fieldId})" + 
+                // log.info("[\$calc] {{passCount:${passCount}, field:${calculation.name} (${calculation.fieldId})" +
                 // 		", calcType:${calculation.op}(${calculation.args})" +
                 // 		", previousResult:${temporaryResults[calculation.fieldId]}" +
                 // 		", calcValue:$novoResultado}}");
@@ -98,9 +96,9 @@ def getCalculationArguments(calculation,instanceFields,temporaryResults) {
 def getAllAplicableValuesForVarName(fieldId,varName,varFieldIds,instanceFields,temporaryResults) {
     // log.info("[\$calc] find '$varName'($varFieldIds) in $instanceFields (temporaryResults=$temporaryResults) ");
     def relevantFields = instanceFields.findAll{ instField -> varFieldIds.indexOf(instField.fieldDefinition.id) >= 0 }
-    
+
     def result = varFieldIds.collect { varFieldId ->
-        if(temporaryResults[varFieldId] != null) { 
+        if(temporaryResults[varFieldId] != null) {
             return temporaryResults[varFieldId]
         } else {
             return  temporaryResults[varFieldId] = instanceFields.findAll{ instField -> varFieldId == instField.fieldDefinition.id }?.collect { it.value }
@@ -146,6 +144,6 @@ def getAllCalculationFields(definitionName) {
         }
         previousId = fieldId
     }
-    log.info("[\$calc] Update 'calculationFields' for '$definitionName': $calculationFields");	
+    log.info("[\$calc] Update 'calculationFields' for '$definitionName': $calculationFields");
     return calculationFields
 }
