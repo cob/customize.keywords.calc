@@ -146,6 +146,18 @@ cob.custom.customize.push(function (core, utils, ui) {
                 } else if (calculation.op === "subtract" && values.length === 2) {
                     resultado = new BigDecimal(values[0]);
                     resultado = resultado.subtract(new BigDecimal(values[1]))
+                } else if (calculation.op === "diffDays" && values.length === 2) {
+                    resultado = new BigDecimal(values[0]);
+                    resultado = resultado.subtract(new BigDecimal(values[1]))
+                    resultado = resultado.divide(24*60*60*1000)
+                } else if (calculation.op === "diffHours" && values.length === 2) {
+                    resultado = new BigDecimal(values[0]);
+                    resultado = resultado.subtract(new BigDecimal(values[1]))
+                    resultado = resultado.divide(60*60*1000)
+                } else if (calculation.op === "diffMinutes" && values.length === 2) {
+                    resultado = new BigDecimal(values[0]);
+                    resultado = resultado.subtract(new BigDecimal(values[1]))
+                    resultado = resultado.divide(60*1000)
                 }
                 return resultado
             }

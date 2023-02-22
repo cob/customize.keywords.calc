@@ -80,6 +80,21 @@ def evaluateExpression(calculation,instanceFields,temporaryResults) {
     } else if (calculation.op == "subtract" && args.size() == 2) {
         resultado = new BigDecimal(args[0]?.trim() ?: 0);
         resultado = resultado.subtract(new BigDecimal(args[1]?.trim() ?: 0))
+
+    } else if (calculation.op == "diffDays" && args.size() == 2) {
+        resultado = new BigDecimal(args[0]?.trim() ?: 0);
+        resultado = resultado.subtract(new BigDecimal(args[1]?.trim() ?: 0))
+        resultado = resultado.divide(new BigDecimal(24*60*60*1000), 8, RoundingMode.HALF_UP)
+
+    } else if (calculation.op == "diffHours" && args.size() == 2) {
+        resultado = new BigDecimal(args[0]?.trim() ?: 0);
+        resultado = resultado.subtract(new BigDecimal(args[1]?.trim() ?: 0))
+        resultado = resultado.divide(new BigDecimal(60*60*1000), 8, RoundingMode.HALF_UP)
+
+    } else if (calculation.op == "diifMinutes" && args.size() == 2) {
+        resultado = new BigDecimal(args[0]?.trim() ?: 0);
+        resultado = resultado.subtract(new BigDecimal(args[1]?.trim() ?: 0))
+        resultado = resultado.divide(new BigDecimal(60*1000), 8, RoundingMode.HALF_UP)
     }
     return resultado.stripTrailingZeros().toPlainString()
 }
