@@ -121,14 +121,12 @@ cob.custom.customize.push(function (core, utils, ui) {
             function evaluateExpression(calculation) {
                 // Obter valores para variaveis
                 let values = calculation.args
-                                .filter(arg => !isNaN(arg) && arg.isVisible())
-                                .map(arg =>
-                                    arg.getValue
-                                    ? isNaN(arg.getValue() * 1)
-                                        ? 0
-                                        : parseFloat(arg.getValue())
-                                    : arg
-                                );
+                    .filter(arg => arg.isField
+                                   ? !isNaN(arg.getValue()) && arg.isVisible()
+                                   : !isNaN(arg))
+                    .map(arg => arg.isField
+                                ? parseFloat(arg.getValue())
+                                : arg);
 
                 // Realizar operação
                 let resultado = new BigDecimal(0)
@@ -174,7 +172,7 @@ cob.custom.customize.push(function (core, utils, ui) {
             if (value instanceof BigDecimal) return value;
             let [ints, decis] = String(value).split(".").concat("");
             this._n = BigInt(ints + decis.padEnd(BigDecimal.DECIMALS, "0")
-                                        .slice(0, BigDecimal.DECIMALS)) 
+                                        .slice(0, BigDecimal.DECIMALS))
                     + BigInt(BigDecimal.ROUNDED && decis[BigDecimal.DECIMALS] >= "5");
         }
         static fromBigInt(bigint) {
@@ -187,7 +185,7 @@ cob.custom.customize.push(function (core, utils, ui) {
             return BigDecimal.fromBigInt(this._n - new BigDecimal(num)._n);
         }
         static _divRound(dividend, divisor) {
-            return BigDecimal.fromBigInt(dividend / divisor 
+            return BigDecimal.fromBigInt(dividend / divisor
                 + (BigDecimal.ROUNDED ? dividend  * 2n / divisor % 2n : 0n));
         }
         multiply(num) {
