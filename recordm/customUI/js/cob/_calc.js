@@ -121,7 +121,7 @@ cob.custom.customize.push(function (core, utils, ui) {
             function evaluateExpression(calculation) {
                 // Obter valores para variaveis
                 let values = calculation.args
-                                .filter(arg => !isNaN(arg) || arg.isVisible())
+                                .filter(arg => !isNaN(arg) && arg.isVisible())
                                 .map(arg =>
                                     arg.getValue
                                     ? isNaN(arg.getValue() * 1)
