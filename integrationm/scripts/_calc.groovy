@@ -65,8 +65,6 @@ def evaluateExpression(calculation,instanceFields,temporaryResults) {
     def resultado = new BigDecimal(0)
     def args = getCalculationArguments(calculation,instanceFields,temporaryResults)
 
-    log.info("### HM: user=${msg.user} id=${msg.instance.id} fields=${instanceFields.collect {f -> f.fieldDefinition.name}} args=${args} calculation=${calculation}")
-
     if(calculation.op == "multiply" && args.size() > 0) {
         resultado = 1
         args.each { arg -> resultado = resultado.multiply(new BigDecimal(arg?.trim() ?: 0)) }
