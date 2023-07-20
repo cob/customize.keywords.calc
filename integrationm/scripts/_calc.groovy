@@ -36,6 +36,8 @@ def getCalculationArgNames(fieldDescription) {
 }
 
 def executeCalculations(calculationFields,instanceFields) {
+    def allInstanceFields = msg.instance.getFields()
+
     def updates = [:]
     def atLeastOneChangeFlag = false;
     def passCount = 0;
@@ -44,14 +46,23 @@ def executeCalculations(calculationFields,instanceFields) {
         atLeastOneChangeFlag = false
         calculationFields.each { calculation ->
             def novoResultado = evaluateExpression(calculation,instanceFields,temporaryResults)
-            if(temporaryResults[calculation.fieldId] != novoResultado ) {
+
+            def fieldDefinitionId = calculation.fieldId
+            if(temporaryResults[fieldDefinitionId] != novoResultado ) {
                 // log.info("[\$calc] {{passCount:${passCount}, field:${calculation.name} (${calculation.fieldId})" +
                 // 		", calcType:${calculation.op}(${calculation.args})" +
                 // 		", previousResult:${temporaryResults[calculation.fieldId]}" +
                 // 		", calcValue:$novoResultado}}");
 
-                temporaryResults[calculation.fieldId] = novoResultado;
-                updates << [("id:${calculation.fieldId}".toString()): novoResultado]
+                temporaryResults[fieldDefinitionId] = novoResultado;
+
+                // WARN: This will only solve the cases for the fields with same name but it won't solve for the cases where we have duplicate fields
+                def instanceField = allInstanceFields.find { instField -> instField.fieldDefinition.id == fieldDefinitionId }
+                if (instanceField != null) {
+                    updates << [("id:${instanceField.id}".toString()): novoResultado]
+                } else {
+                    log.error("Error finding instance field for field definition {{ fieldDefId: ${fieldDefinitionId} }} ")
+                }
 
                 atLeastOneChangeFlag = true
             }
