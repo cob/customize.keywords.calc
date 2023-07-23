@@ -4,9 +4,9 @@ if (!(msg.user != "integrationm" && msg.product == "recordm" && msg.action =~ "a
 
 // ===================================================================================================
 
-def maybeUpdated = CalculatorsDefinitionCache.getCalculatorForDefinition(msg)
+def updateMap = CalculatorsDefinitionCache.getCalculatorForDefinition(msg)
         .calculate(msg)
 
-if (maybeUpdated.isPresent()) {
-    recordm.update(msg.type, msg.instance.id, maybeUpdated.get());
+if (updateMap.size() > 0) {
+    recordm.update(msg.type, msg.instance.id, updateMap);
 }

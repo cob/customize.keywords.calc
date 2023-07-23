@@ -62,25 +62,26 @@ class DefinitionCalculator {
                 }
     }
 
-    Optional<Map<String, String>> calculate(RecordmMsg recordmMsg) {
+    Map<String, String> calculate(RecordmMsg recordmMsg) {
         // Map with key the calc expression
         def calcContext = new CalcContext(recordmMsg)
 
-        def updatedFields = recordmMsg.instance.getFields().inject([:] as Map<String, String>) { map, Map<String, Object> field ->
+        recordmMsg.instance.getFields().inject([:] as Map<String, String>) { map, Map<String, Object> field ->
             def newValue = getFieldValue(field, calcContext)
 
             if (newValue != field.value) {
-                map << [("id:${field.id}".toString()): newValue]
+                map << [("id:${field.id}".toString()): "${newValue}".toString()]
             }
 
             map
-        }
-
-        println()
-        return Optional.ofNullable(updatedFields.size() > 0 ? updatedFields : null)
+        } as Map<String, String>
     }
 
     protected def getFieldValue(field, calcContext) {
+        if (field.fieldDefinition.description?.indexOf("\$calc") != -1 && calcContext.cache[field.fieldDefinition.id] != null) {
+            return calcContext.cache[field.fieldDefinition.id].toString()
+        }
+
         def calcExpr = fdCalcExprById[field.fieldDefinition.id]
 
         // There isn't anything to calculate, it is just a $var
@@ -94,15 +95,13 @@ class DefinitionCalculator {
                 return [arg]
             }
 
-            fdVarByVarName[arg].collect { fd ->
-                calcContext.fieldMapByFieldDefId[fd.id]?.collect { getFieldValue(it, calcContext) }
-            }
+            fdVarByVarName[arg].collect { fd -> calcContext.fieldMapByFieldDefId[fd.id]?.collect { getFieldValue(it, calcContext) } }
         }.flatten().collect { new BigDecimal(it ?: 0) }
 
-        println("calc instanceId=${calcContext.recordmMsg.instance.id} " +
-                "fieldId=${field.id} fieldDefinitionName=${field.fieldDefinition.name} " +
-                "args=${calcExpr.args} " +
-                "argValues=${argValues}")
+        // println("calc instanceId=${calcContext.recordmMsg.instance.id} " +
+        //         "fieldId=${field.id} fieldDefinitionName=${field.fieldDefinition.name} " +
+        //         "args=${calcExpr.args} " +
+        //         "argValues=${argValues}")
 
         def result = new BigDecimal(0)
 
@@ -137,6 +136,8 @@ class DefinitionCalculator {
             result = result.divide(new BigDecimal(60 * 1000), 8, RoundingMode.HALF_UP)
         }
 
+        calcContext.cache[field.fieldDefinition.id] = result
+
         result.stripTrailingZeros().toPlainString()
     }
 
@@ -162,9 +163,11 @@ class DefinitionCalculator {
     static class CalcContext {
         RecordmMsg recordmMsg
         Map<Integer, List<Map<String, Object>>> fieldMapByFieldDefId
+        Map<Integer, BigDecimal> cache
 
         CalcContext(recordmMsg) {
             this.recordmMsg = recordmMsg
+            this.cache = [:]
             this.fieldMapByFieldDefId = fieldMapByFieldDefId = recordmMsg.instance.getFields().inject([:] as Map<Integer, List<Map<String, Object>>>) { map, field ->
                 def fieldDefIdEntry = map[field.fieldDefinition.id]
                 if (fieldDefIdEntry != null) {
