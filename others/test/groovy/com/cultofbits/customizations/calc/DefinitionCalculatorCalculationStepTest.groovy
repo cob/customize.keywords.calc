@@ -167,6 +167,50 @@ class DefinitionCalculatorCalculationStepTest {
         assertEquals(updateMap["id:103"], "${50 * 2}".toString())
     }
 
+    @Test
+    void can_handle_circular_dependencies_by_throwing_an_error() {
+        Definition definition = new Definition().with {
+            it.name = "definition 1"
+            it.version = 1
+            it.fieldDefinitions = [
+                    new FieldDefinition().with {
+                        it.id = 0; it.name = "field0";
+                        it
+                    },
+                    new FieldDefinition().with {
+                        it.id = 1; it.name = "field1";
+                        it.description = "\$calc.multiply(var.field2,2) \$var.field1";
+                        it
+                    },
+                    new FieldDefinition().with {
+                        it.id = 2; it.name = "field2";
+                        it.description = "\$calc.multiply(var.field1,2) \$var.field2";
+                        it
+                    },
+            ]
+            it
+        }
+
+        def recordmMsg = new RecordmMsg([
+                instance: [
+                        fields: [
+                                buildField(100, definition.fieldDefinitions[0], "1000"),
+                                buildField(101, definition.fieldDefinitions[1], 50),
+                                buildField(102, definition.fieldDefinitions[2], null),
+                        ]
+                ]
+        ])
+
+        def calculator = new DefinitionCalculator(definition)
+
+        try {
+            calculator.calculate(recordmMsg)
+        } catch (RuntimeException e) {
+            assertEquals(e.getMessage(), "Cyclic dependency detected, path: fd:1,field1 -> fd:2,field2 -> fd:1,field1")
+        }
+    }
+
+
     static def buildField(id, fieldDefinition, value) {
         return [
                 id             : id,

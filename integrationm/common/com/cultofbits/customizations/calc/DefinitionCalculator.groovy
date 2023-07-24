@@ -12,10 +12,10 @@ class DefinitionCalculator {
     protected Integer defVersion;
 
     // a map with the key the var name (including var.) and the value the list of all fields
-    protected Map<String, List<FieldDefinition>> fdVarsByVarName = [:]
+    protected Map<String, List<FieldDefinition>> fdVarsByMapVarName = [:]
 
     // All field definitions that have $calc.<operation>
-    protected Map<Integer, CalcExpr> fdCalcExprById = [:]
+    protected Map<Integer, CalcExpr> fdCalcExprMapById = [:]
 
     DefinitionCalculator(definition) {
         this.defName = definition.name
@@ -26,7 +26,7 @@ class DefinitionCalculator {
 
     protected processDefinition(Definition definition) {
         // Collect all field definitions with $var.*
-        fdVarsByVarName = definition.fieldDefinitions
+        fdVarsByMapVarName = definition.fieldDefinitions
                 .findAll { fd -> fd.description != null && fd.description.indexOf("\$var.") != -1 }
                 .inject([:] as Map<String, List<FieldDefinition>>) { map, fd ->
                     def words = fd.description =~ /([^\s]+)/
@@ -45,7 +45,7 @@ class DefinitionCalculator {
                 }
 
         // Collect all field definitions with $calc.*
-        fdCalcExprById = definition.fieldDefinitions
+        fdCalcExprMapById = definition.fieldDefinitions
                 .findAll { fd -> fd.description =~ /[$]calc\./ }
                 .inject([:] as Map<Integer, CalcExpr>) { map, fd ->
                     def op = (fd.description =~ /.*[$]calc.([^(]+)/).with { it[0][1] }
@@ -67,11 +67,10 @@ class DefinitionCalculator {
      * @return a Map with all the updated fields
      */
     Map<String, String> calculate(RecordmMsg recordmMsg) {
-        // Map with key the calc expression
         def calcContext = new CalcContext(recordmMsg)
 
         recordmMsg.instance.getFields().inject([:] as Map<String, String>) { map, Map<String, Object> field ->
-            def newValue = getFieldValue(field, calcContext)
+            def newValue = getFieldValue(field, null, calcContext, new HashSet<StackEntry>())
 
             if (newValue != field.value) {
                 map << [("id:${field.id}".toString()): "${newValue}".toString()]
@@ -82,31 +81,33 @@ class DefinitionCalculator {
     }
 
     /**
-     *
-     * @param field
-     * @param calcContext
-     * @return
+     * Calculate a single field value
      */
-    String getFieldValue(field, calcContext) {
-        if (field.fieldDefinition.description?.indexOf("\$calc") != -1 && calcContext.cache[field.fieldDefinition.id] != null) {
-            return calcContext.cache[field.fieldDefinition.id].toString()
-        }
+    String getFieldValue(field, parentField, calcContext, HashSet<StackEntry> stack) {
 
-        def calcExpr = fdCalcExprById[field.fieldDefinition.id]
+        def calcExpr = fdCalcExprMapById[field.fieldDefinition.id]
 
-        // There isn't anything to calculate, it is just a $var
-        // Ver isto ????
+        // There isn't anything to calculate, it is just a normal field
         if (calcExpr == null) {
             return field.value
         }
 
-        // it has $calc
+        if (calcExpr != null && calcContext.cache[field.fieldDefinition.id] != null) {
+            return calcContext.cache[field.fieldDefinition.id].toString()
+        }
+
+        def stackEntry = new StackEntry(field, parentField)
+        if (stack.contains(stackEntry)) {
+            // Adding to the stack so we can easily print the path for the cyrcular dependency
+            stack << stackEntry
+            throw new RuntimeException("Cyclic dependency detected, path: ${stack.collect { it.toString() }.join(" -> ")}")
+        }
+
+        stack << stackEntry
+
+        // it is a $calc but it hasn't been calculated yet.
         def argValues = calcExpr.args
-                .collect { arg ->
-                    !arg.startsWith("var")
-                            ? [arg]
-                            : fdVarsByVarName[arg].collect { fd -> calcContext.fieldMapByFieldDefId[fd.id]?.collect { getFieldValue(it, calcContext) } }
-                }
+                .collect { arg -> !arg.startsWith("var") ? [arg] : fdVarsByMapVarName[arg].collect { fd -> calcContext.fieldMapByFieldDefId[fd.id]?.collect { getFieldValue(it, field, calcContext, stack) } } }
                 .flatten()
                 .collect { new BigDecimal(it ?: 0) }
 
@@ -189,6 +190,42 @@ class DefinitionCalculator {
                 }
                 map
             }
+        }
+    }
+
+    static class StackEntry {
+
+        def field
+        def parentField
+
+        StackEntry(field, parentField) {
+            this.field = field
+            this.parentField = parentField
+        }
+
+        boolean equals(o) {
+            if (this.is(o)) return true
+            if (o == null || getClass() != o.class) return false
+
+            StackEntry that = (StackEntry) o
+
+            if (field != that.field) return false
+            if (parentField != that.parentField) return false
+
+            return true
+        }
+
+        int hashCode() {
+            int result
+            result = (field != null ? field.hashCode() : 0)
+            result = 31 * result + (parentField != null ? parentField.hashCode() : 0)
+            return result
+        }
+
+
+        @Override
+        String toString() {
+            return "fd:${field.fieldDefinition.id},${field.fieldDefinition.name}"
         }
     }
 
