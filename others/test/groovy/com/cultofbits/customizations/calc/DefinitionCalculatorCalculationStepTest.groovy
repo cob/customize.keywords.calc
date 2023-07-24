@@ -6,7 +6,6 @@ import com.cultofbits.integrationm.service.dictionary.recordm.RecordmMsg
 import org.junit.Test
 
 import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertTrue
 
 class DefinitionCalculatorCalculationStepTest {
 
@@ -47,11 +46,11 @@ class DefinitionCalculatorCalculationStepTest {
         def recordmMsg = new RecordmMsg([
                 instance: [
                         fields: [
-                                buildFieldDefinition(100, definition.fieldDefinitions[0], "1000"),
-                                buildFieldDefinition(101, definition.fieldDefinitions[1], "1"),
-                                buildFieldDefinition(102, definition.fieldDefinitions[2], "2"),
-                                buildFieldDefinition(103, definition.fieldDefinitions[3], null),
-                                buildFieldDefinition(104, definition.fieldDefinitions[4], null),
+                                buildField(100, definition.fieldDefinitions[0], "1000"),
+                                buildField(101, definition.fieldDefinitions[1], "1"),
+                                buildField(102, definition.fieldDefinitions[2], "2"),
+                                buildField(103, definition.fieldDefinitions[3], null),
+                                buildField(104, definition.fieldDefinitions[4], null),
                         ]
                 ]
         ])
@@ -99,11 +98,11 @@ class DefinitionCalculatorCalculationStepTest {
         def recordmMsg = new RecordmMsg([
                 instance: [
                         fields: [
-                                buildFieldDefinition(100, definition.fieldDefinitions[0], "1000"),
-                                buildFieldDefinition(101, definition.fieldDefinitions[1], 50),
-                                buildFieldDefinition(102, definition.fieldDefinitions[2], null),
-                                buildFieldDefinition(103, definition.fieldDefinitions[3], null),
-                                buildFieldDefinition(104, definition.fieldDefinitions[4], null),
+                                buildField(100, definition.fieldDefinitions[0], "1000"),
+                                buildField(101, definition.fieldDefinitions[1], 50),
+                                buildField(102, definition.fieldDefinitions[2], null),
+                                buildField(103, definition.fieldDefinitions[3], null),
+                                buildField(104, definition.fieldDefinitions[4], null),
                         ]
                 ]
         ])
@@ -152,11 +151,11 @@ class DefinitionCalculatorCalculationStepTest {
         def recordmMsg = new RecordmMsg([
                 instance: [
                         fields: [
-                                buildFieldDefinition(100, definition.fieldDefinitions[0], "1000"),
-                                buildFieldDefinition(101, definition.fieldDefinitions[1], 50),
-                                buildFieldDefinition(102, definition.fieldDefinitions[2], null),
-                                buildFieldDefinition(103, definition.fieldDefinitions[3], null),
-                                buildFieldDefinition(104, definition.fieldDefinitions[4], null),
+                                buildField(100, definition.fieldDefinitions[0], "1000"),
+                                buildField(101, definition.fieldDefinitions[1], 50),
+                                buildField(102, definition.fieldDefinitions[2], null),
+                                buildField(103, definition.fieldDefinitions[3], null),
+                                buildField(104, definition.fieldDefinitions[4], null),
                         ]
                 ]
         ])
@@ -168,8 +167,7 @@ class DefinitionCalculatorCalculationStepTest {
         assertEquals(updateMap["id:103"], "${50 * 2}".toString())
     }
 
-
-    static def buildFieldDefinition(id, fieldDefinition, value) {
+    static def buildField(id, fieldDefinition, value) {
         return [
                 id             : id,
                 value          : value,

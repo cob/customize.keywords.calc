@@ -40,9 +40,9 @@ class DefinitionCalculatorProcessorStepTest {
 
         def calculator = new DefinitionCalculator(definition)
 
-        assertEquals(calculator.fdVarByVarName["var.field1"].collect { it.id }.join(","), "1")
-        assertEquals(calculator.fdVarByVarName["var.field2"].collect { it.id }.join(","), "2")
-        assertEquals(calculator.fdVarByVarName["var.some.var.structure"].collect { it.id }.join(","), "3,4")
+        assertEquals(calculator.fdVarsByVarName["var.field1"].collect { it.id }.join(","), "1")
+        assertEquals(calculator.fdVarsByVarName["var.field2"].collect { it.id }.join(","), "2")
+        assertEquals(calculator.fdVarsByVarName["var.some.var.structure"].collect { it.id }.join(","), "3,4")
     }
 
     @Test
@@ -74,8 +74,8 @@ class DefinitionCalculatorProcessorStepTest {
         assertEquals(calculator.defName, definition.name)
         assertEquals(calculator.defVersion, 1)
 
-        assertEquals(calculator.fdVarByVarName["var.field1"], [definition.fieldDefinitions[0]])
-        assertEquals(calculator.fdVarByVarName["var.field2"], [definition.fieldDefinitions[1]])
+        assertEquals(calculator.fdVarsByVarName["var.field1"], [definition.fieldDefinitions[0]])
+        assertEquals(calculator.fdVarsByVarName["var.field2"], [definition.fieldDefinitions[1]])
 
         assertEquals(calculator.fdCalcExprById[3].operation, "multiply")
         assertEquals(calculator.fdCalcExprById[3].args, ["var.field1", "var.field2", "10"])
@@ -110,8 +110,8 @@ class DefinitionCalculatorProcessorStepTest {
         assertEquals(calculator.defName, definition.name)
         assertEquals(calculator.defVersion, 1)
 
-        assertEquals(calculator.fdVarByVarName["var.field1"], [definition.fieldDefinitions[0]])
-        assertEquals(calculator.fdVarByVarName["var.field2"], [definition.fieldDefinitions[1]])
+        assertEquals(calculator.fdVarsByVarName["var.field1"], [definition.fieldDefinitions[0]])
+        assertEquals(calculator.fdVarsByVarName["var.field2"], [definition.fieldDefinitions[1]])
 
         assertEquals(calculator.fdCalcExprById[2].operation, "sum")
         assertEquals(calculator.fdCalcExprById[2].args, ["var.field1", "1000"])

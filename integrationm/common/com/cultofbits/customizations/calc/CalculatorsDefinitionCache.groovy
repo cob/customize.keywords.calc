@@ -19,7 +19,7 @@ class CalculatorsDefinitionCache {
                 cacheOfCalcFieldsForDefinition.invalidate(definitionName);
                 return cacheOfCalcFieldsForDefinition.get(
                         definitionName,
-                        { String name -> recordm.getDefinition(name)?.with { r -> new DefinitionCalculator(r.getBody()) } }
+                        { recordm.getDefinition(definitionName)?.with { r -> new DefinitionCalculator(r.getBody()) } }
                 )
             }
         }
