@@ -59,7 +59,7 @@
                     </sources>
                     <testSources>
                         <testSource>
-                            <directory>${project.basedir}/others/test/groovy</directory>
+                            <directory>${project.basedir}/test/groovy</directory>
                         </testSource>
                     </testSources>
                 </configuration>
