@@ -54,6 +54,6 @@ fi
 
 if [[ "$all" == "true" ]] || [[ "$type" == "groovy" ]]; then
   if  [[ -f "integrationm/pom.xml" ]]; then
-    (cd integrationm && mvn test)
+    (cd integrationm && mvn clean test)
   fi
 fi

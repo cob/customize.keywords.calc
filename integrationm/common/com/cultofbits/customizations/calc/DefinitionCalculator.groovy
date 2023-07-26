@@ -70,7 +70,7 @@ class DefinitionCalculator {
         def calcContext = new CalcContext(recordmMsg)
 
         recordmMsg.instance.getFields().inject([:] as Map<String, String>) { map, Map<String, Object> field ->
-            def newValue = getFieldValue(field, null, calcContext, new HashSet<StackEntry>())
+            def newValue = getFieldValue(field, null, calcContext, new ArrayList<StackEntry>())
 
             if (newValue != field.value) {
                 map << [("id:${field.id}".toString()): "${newValue}".toString()]
@@ -83,7 +83,7 @@ class DefinitionCalculator {
     /**
      * Calculate a single field value
      */
-    String getFieldValue(field, parentField, calcContext, HashSet<StackEntry> stack) {
+    String getFieldValue(field, parentField, calcContext, List<StackEntry> stack) {
 
         def calcExpr = fdCalcExprMapById[field.fieldDefinition.id]
 

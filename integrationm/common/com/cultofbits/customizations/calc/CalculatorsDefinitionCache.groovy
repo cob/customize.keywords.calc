@@ -7,23 +7,26 @@ import java.util.concurrent.TimeUnit
 
 class CalculatorsDefinitionCache {
 
-    private static Cache<String, DefinitionCalculator> cacheOfCalcFieldsForDefinition = CacheBuilder.newBuilder()
+    protected static Cache<String, DefinitionCalculator> cacheOfCalcFieldsForDefinition = CacheBuilder.newBuilder()
             .expireAfterWrite(1, TimeUnit.HOURS)
             .build()
 
     static DefinitionCalculator getCalculatorForDefinition(RecordmMsg recordmMsg, RecordmActionPack recordmActionPack) {
         String definitionName = recordmMsg.type
-        return cacheOfCalcFieldsForDefinition.getUnchecked(definitionName)?.with { defCalculator ->
-            if (defCalculator?.defVersion == recordmMsg.definitionVersion) {
-                return defCalculator
 
-            } else {
-                cacheOfCalcFieldsForDefinition.invalidate(definitionName);
-                return cacheOfCalcFieldsForDefinition.get(
-                        definitionName,
-                        { recordmActionPack.getDefinition(definitionName)?.with { r -> new DefinitionCalculator(r.getBody()) } }
-                )
-            }
+        def calculator = getFromCache(definitionName, recordmActionPack)
+        if (calculator.defVersion == recordmMsg.definitionVersion) {
+            return calculator
+
+        } else {
+            cacheOfCalcFieldsForDefinition.invalidate(definitionName);
+            return getFromCache(definitionName, recordmActionPack)
         }
+    }
+
+    private static DefinitionCalculator getFromCache(String definitionName, recordmActionPack) {
+        cacheOfCalcFieldsForDefinition.get(
+                definitionName,
+                { recordmActionPack.getDefinition(definitionName)?.with { r -> new DefinitionCalculator(r.getBody()) } })
     }
 }

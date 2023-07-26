@@ -206,7 +206,7 @@ class DefinitionCalculatorCalculationStepTest {
         try {
             calculator.calculate(recordmMsg)
         } catch (RuntimeException e) {
-            assertEquals(e.getMessage(), "Cyclic dependency detected, path: fd:1,field1 -> fd:2,field2 -> fd:1,field1")
+            assertEquals(e.getMessage(), "Cyclic dependency detected, path: fd:1,field1 -> fd:2,field2 -> fd:1,field1 -> fd:2,field2")
         }
     }
 
