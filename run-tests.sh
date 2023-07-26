@@ -53,5 +53,7 @@ if [[ "$all" == "false" ]] && [[ "$type" == "" ]]; then
 fi
 
 if [[ "$all" == "true" ]] || [[ "$type" == "groovy" ]]; then
-  mvn test
+  if  [[ -f "integrationm/pom.xml" ]]; then
+    (cd integrationm && mvn test)
+  fi
 fi

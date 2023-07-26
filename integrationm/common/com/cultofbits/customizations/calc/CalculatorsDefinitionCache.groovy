@@ -1,5 +1,7 @@
 package com.cultofbits.customizations.calc
 
+import com.cultofbits.integrationm.service.actionpack.RecordmActionPack
+import com.cultofbits.integrationm.service.dictionary.recordm.RecordmMsg
 import com.google.common.cache.*
 import java.util.concurrent.TimeUnit
 
@@ -9,17 +11,17 @@ class CalculatorsDefinitionCache {
             .expireAfterWrite(1, TimeUnit.HOURS)
             .build()
 
-    static DefinitionCalculator getCalculatorForDefinition(eventMsg) {
-        String definitionName = eventMsg.type
+    static DefinitionCalculator getCalculatorForDefinition(RecordmMsg recordmMsg, RecordmActionPack recordmActionPack) {
+        String definitionName = recordmMsg.type
         return cacheOfCalcFieldsForDefinition.getUnchecked(definitionName)?.with { defCalculator ->
-            if (defCalculator?.defVersion == eventMsg.defVersion) {
+            if (defCalculator?.defVersion == recordmMsg.definitionVersion) {
                 return defCalculator
 
             } else {
                 cacheOfCalcFieldsForDefinition.invalidate(definitionName);
                 return cacheOfCalcFieldsForDefinition.get(
                         definitionName,
-                        { recordm.getDefinition(definitionName)?.with { r -> new DefinitionCalculator(r.getBody()) } }
+                        { recordmActionPack.getDefinition(definitionName)?.with { r -> new DefinitionCalculator(r.getBody()) } }
                 )
             }
         }

@@ -4,7 +4,7 @@ if (!(msg.user != "integrationm" && msg.product == "recordm" && msg.action =~ "a
 
 // ===================================================================================================
 
-def updateMap = CalculatorsDefinitionCache.getCalculatorForDefinition(msg)
+def updateMap = CalculatorsDefinitionCache.getCalculatorForDefinition(msg, recordm)
         .calculate(msg)
 
 if (updateMap.size() > 0) {

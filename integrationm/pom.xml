@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.cultofbits.customizations</groupId>
-    <artifactId>calc</artifactId>
+    <artifactId>integrationm-calc</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
     <name>$calc</name>
@@ -51,15 +51,15 @@
                 <configuration>
                     <sources>
                         <source>
-                            <directory>${project.basedir}/integrationm/common</directory>
+                            <directory>${project.basedir}/common</directory>
                         </source>
                         <source>
-                            <directory>${project.basedir}/integrationm/scripts</directory>
+                            <directory>${project.basedir}/scripts</directory>
                         </source>
                     </sources>
                     <testSources>
                         <testSource>
-                            <directory>${project.basedir}/test/groovy</directory>
+                            <directory>${project.basedir}/test</directory>
                         </testSource>
                     </testSources>
                 </configuration>
