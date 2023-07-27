@@ -5,7 +5,6 @@ import com.cultofbits.integrationm.service.dictionary.ReusableResponse
 import com.cultofbits.integrationm.service.dictionary.recordm.Definition
 import com.cultofbits.integrationm.service.dictionary.recordm.FieldDefinition
 import com.cultofbits.integrationm.service.dictionary.recordm.RecordmMsg
-import org.junit.Test
 import spock.lang.Specification
 
 class CalculatorsDefinitionCacheTest extends Specification {
@@ -14,9 +13,8 @@ class CalculatorsDefinitionCacheTest extends Specification {
         CalculatorsDefinitionCache.cacheOfCalcFieldsForDefinition.invalidateAll()
     }
 
-    @Test
     void "can load definition from recordm"() {
-        given:
+        given: "no definition is cache"
         def msg = new RecordmMsg([
                 type               : "dummy-definition",
                 "definitionVersion": 1
@@ -34,17 +32,18 @@ class CalculatorsDefinitionCacheTest extends Specification {
         def recordm = Mock(RecordmActionPack.class)
         recordm.getDefinition("dummy-definition") >> reusableResponse
 
+        def log = Object.class
+
         when:
-        def calculator = CalculatorsDefinitionCache.getCalculatorForDefinition(msg, recordm)
+        def calculator = CalculatorsDefinitionCache.getCalculatorForDefinition(msg, recordm, log)
 
         then:
         calculator.defName == msg.type
         calculator.defVersion == msg.definitionVersion
     }
 
-    @Test
     void "can get latest version of definition from recordm"() {
-        given:
+        given: "definition version is different from recordm message"
 
         CalculatorsDefinitionCache.cacheOfCalcFieldsForDefinition.put(
                 "dummy-definition",
@@ -77,8 +76,10 @@ class CalculatorsDefinitionCacheTest extends Specification {
         def recordm = Mock(RecordmActionPack.class)
         recordm.getDefinition("dummy-definition") >> reusableResponse
 
+        def log = Object.class
+
         when:
-        def calculator = CalculatorsDefinitionCache.getCalculatorForDefinition(msg, recordm)
+        def calculator = CalculatorsDefinitionCache.getCalculatorForDefinition(msg, recordm, log)
 
         then:
         calculator.defName == msg.type

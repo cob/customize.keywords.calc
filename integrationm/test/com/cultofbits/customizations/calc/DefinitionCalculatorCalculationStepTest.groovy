@@ -1,222 +1,158 @@
 package com.cultofbits.customizations.calc
 
-import com.cultofbits.integrationm.service.dictionary.recordm.Definition
-import com.cultofbits.integrationm.service.dictionary.recordm.FieldDefinition
-import com.cultofbits.integrationm.service.dictionary.recordm.RecordmMsg
-import org.junit.Test
+import spock.lang.Specification
 
-import static org.junit.Assert.assertEquals
+import static com.cultofbits.customizations.utils.RmHelper.*
 
-class DefinitionCalculatorCalculationStepTest {
+class DefinitionCalculatorCalculationStepTest extends Specification {
 
-    @Test
-    void can_calculate_no_dependencies() {
-        Definition definition = new Definition().with {
-            it.name = "definition 1"
-            it.version = 1
-            it.fieldDefinitions = [
-                    new FieldDefinition().with {
-                        it.id = 0; it.name = "field0";
-                        it
-                    },
-                    new FieldDefinition().with {
-                        it.id = 1; it.name = "field1";
-                        it.description = "\$var.field1";
-                        it
-                    },
-                    new FieldDefinition().with {
-                        it.id = 2; it.name = "field2";
-                        it.description = "\$var.field2";
-                        it
-                    },
-                    new FieldDefinition().with {
-                        it.id = 3; it.name = "field1";
-                        it.description = "\$calc.sum(var.field1,var.field2,10,var.nullValue)";
-                        it
-                    },
-                    new FieldDefinition().with {
-                        it.id = 4; it.name = "nullValue";
-                        it.description = "\$var.nullValue";
-                        it
-                    },
-            ]
-            it
-        }
+    void "can calculate with simple definition"() {
+        given:
+        def definition = aDefinition(
+                aFieldDefinition(1, "field1", "\$var.field1 dummy text"),
+                aFieldDefinition(2, "field2", "\$number(2) \$var.field2 \$hint[some hint]"),
+                aFieldDefinition(3, "field3", "\$var.some.var.structure \$number(2) \$hint[some hint]"),
+                aFieldDefinition(4, "field4", "\$calc.sum(var.field1,var.field2,10,var.nullValue)"),
+                aFieldDefinition(5, "nullValue", "\$var.nullValue")
+        )
 
-        def recordmMsg = new RecordmMsg([
-                instance: [
-                        fields: [
-                                buildField(100, definition.fieldDefinitions[0], "1000"),
-                                buildField(101, definition.fieldDefinitions[1], "1"),
-                                buildField(102, definition.fieldDefinitions[2], "2"),
-                                buildField(103, definition.fieldDefinitions[3], null),
-                                buildField(104, definition.fieldDefinitions[4], null),
-                        ]
-                ]
-        ])
+        def recordmMsg = aRecordmMessage(
+                aFieldMap(definition, 1, 101, "1000"),
+                aFieldMap(definition, 2, 102, "1"),
+                aFieldMap(definition, 3, 103, "2"),
+                aFieldMap(definition, 4, 104, null),
+                aFieldMap(definition, 5, 105, null),
+        )
 
+        when:
         def calculator = new DefinitionCalculator(definition)
         def updateMap = calculator.calculate(recordmMsg)
 
-        assertEquals(updateMap["id:103"], "${1 + 2 + 10 + 0}".toString())
+        then:
+        updateMap["id:104"] == "${1000 + 1 + 10}".toString()
     }
 
-    @Test
-    void can_calculate_with_chained_dependencies() {
-        Definition definition = new Definition().with {
-            it.name = "definition 1"
-            it.version = 1
-            it.fieldDefinitions = [
-                    new FieldDefinition().with {
-                        it.id = 0; it.name = "field0";
-                        it
-                    },
-                    new FieldDefinition().with {
-                        it.id = 1; it.name = "field1";
-                        it.description = "\$var.field1";
-                        it
-                    },
-                    new FieldDefinition().with {
-                        it.id = 2; it.name = "field2";
-                        it.description = "\$calc.multiply(var.field1,2) \$var.field2";
-                        it
-                    },
-                    new FieldDefinition().with {
-                        it.id = 3; it.name = "field3";
-                        it.description = "\$calc.sum(var.field1,var.field2,10,var.nullValue)";
-                        it
-                    },
-                    new FieldDefinition().with {
-                        it.id = 4; it.name = "field4-nullValue";
-                        it.description = "\$var.nullValue";
-                        it
-                    },
-            ]
-            it
-        }
+    void "ignore trailling zeros"() {
+        given:
+        def definition = aDefinition(
+                aFieldDefinition(1, "field1", "\$number \$var.field1 dummy"),
+                aFieldDefinition(2, "field2", "\$calc.multiply(var.field1,280,10)"),
+        )
 
-        def recordmMsg = new RecordmMsg([
-                instance: [
-                        fields: [
-                                buildField(100, definition.fieldDefinitions[0], "1000"),
-                                buildField(101, definition.fieldDefinitions[1], 50),
-                                buildField(102, definition.fieldDefinitions[2], null),
-                                buildField(103, definition.fieldDefinitions[3], null),
-                                buildField(104, definition.fieldDefinitions[4], null),
-                        ]
-                ]
-        ])
+        def recordmMsg = aRecordmMessage(
+                aFieldMap(definition, 1, 101, "0.4"),
+                aFieldMap(definition, 2, 102, null),
+        )
 
+        when:
         def calculator = new DefinitionCalculator(definition)
         def updateMap = calculator.calculate(recordmMsg)
 
-        assertEquals(updateMap["id:102"], "${50 * 2}".toString())
-        assertEquals(updateMap["id:103"], "${50 + (50 * 2) + 10 + 0}".toString())
+        then:
+        updateMap["id:102"] == "1120"
     }
 
-    @Test
-    void can_calculate_with_reversed_dependencies() {
-        Definition definition = new Definition().with {
-            it.name = "definition 1"
-            it.version = 1
-            it.fieldDefinitions = [
-                    new FieldDefinition().with {
-                        it.id = 0; it.name = "field0";
-                        it
-                    },
-                    new FieldDefinition().with {
-                        it.id = 1; it.name = "field1";
-                        it.description = "\$var.field1";
-                        it
-                    },
-                    new FieldDefinition().with {
-                        it.id = 2; it.name = "field2";
-                        it.description = "\$calc.sum(var.field1,var.field3,10,var.nullValue)";
-                        it
-                    },
-                    new FieldDefinition().with {
-                        it.id = 3; it.name = "field3";
-                        it.description = "\$calc.multiply(var.field1,2) \$var.field3";
-                        it
-                    },
-                    new FieldDefinition().with {
-                        it.id = 4; it.name = "field4-nullValue";
-                        it.description = "\$var.nullValue";
-                        it
-                    },
-            ]
-            it
-        }
+    void "can calculate chained calculations"() {
+        given:
+        def definition = aDefinition(
+                aFieldDefinition(1, "field0", "field0"),
+                aFieldDefinition(2, "field1", "\$var.field1"),
+                aFieldDefinition(3, "field2", "\$calc.multiply(var.field1,2) \$var.field2"),
+                aFieldDefinition(4, "field3", "\$calc.sum(var.field1,var.field2,10,var.nullValue)"),
+                aFieldDefinition(5, "field4-nullValue", "\$var.nullValue")
+        )
 
-        def recordmMsg = new RecordmMsg([
-                instance: [
-                        fields: [
-                                buildField(100, definition.fieldDefinitions[0], "1000"),
-                                buildField(101, definition.fieldDefinitions[1], 50),
-                                buildField(102, definition.fieldDefinitions[2], null),
-                                buildField(103, definition.fieldDefinitions[3], null),
-                                buildField(104, definition.fieldDefinitions[4], null),
-                        ]
-                ]
-        ])
+        def recordmMsg = aRecordmMessage(
+                aFieldMap(definition, 1, 101, "1000"),
+                aFieldMap(definition, 2, 102, 50),
+                aFieldMap(definition, 3, 103, null),
+                aFieldMap(definition, 4, 104, null),
+                aFieldMap(definition, 5, 105, null),
+        )
 
+        when:
         def calculator = new DefinitionCalculator(definition)
         def updateMap = calculator.calculate(recordmMsg)
 
-        assertEquals(updateMap["id:102"], "${50 + (50 * 2) + 10 + 0}".toString())
-        assertEquals(updateMap["id:103"], "${50 * 2}".toString())
+        then:
+        updateMap["id:103"] == "${50 * 2}".toString()
+        updateMap["id:104"] == "${50 + (50 * 2) + 10 + 0}".toString()
     }
 
-    @Test
-    void can_handle_circular_dependencies_by_throwing_an_error() {
-        Definition definition = new Definition().with {
-            it.name = "definition 1"
-            it.version = 1
-            it.fieldDefinitions = [
-                    new FieldDefinition().with {
-                        it.id = 0; it.name = "field0";
-                        it
-                    },
-                    new FieldDefinition().with {
-                        it.id = 1; it.name = "field1";
-                        it.description = "\$calc.multiply(var.field2,2) \$var.field1";
-                        it
-                    },
-                    new FieldDefinition().with {
-                        it.id = 2; it.name = "field2";
-                        it.description = "\$calc.multiply(var.field1,2) \$var.field2";
-                        it
-                    },
-            ]
-            it
-        }
+    void "can calculate chained calculations with fields located after"() {
+        given:
+        def definition = aDefinition(
+                aFieldDefinition(1, "field1", "field1"),
+                aFieldDefinition(2, "field2", "\$var.field2"),
+                aFieldDefinition(3, "field3", "\$calc.sum(var.field2,var.field4,10,var.nullValue)"),
+                aFieldDefinition(4, "field4", "\$calc.multiply(var.field2,2) \$var.field4"),
+                aFieldDefinition(5, "field5-nullValue", "\$var.nullValue")
+        )
 
-        def recordmMsg = new RecordmMsg([
-                instance: [
-                        fields: [
-                                buildField(100, definition.fieldDefinitions[0], "1000"),
-                                buildField(101, definition.fieldDefinitions[1], 50),
-                                buildField(102, definition.fieldDefinitions[2], null),
-                        ]
-                ]
-        ])
+        def recordmMsg = aRecordmMessage(
+                aFieldMap(definition, 1, 101, "1000"),
+                aFieldMap(definition, 2, 102, 50),
+                aFieldMap(definition, 3, 103, null),
+                aFieldMap(definition, 4, 104, null),
+                aFieldMap(definition, 5, 105, null),
+        )
 
+        when:
+        def calculator = new DefinitionCalculator(definition)
+        def updateMap = calculator.calculate(recordmMsg)
+
+        then:
+        updateMap["id:103"] == "${50 + (50 * 2) + 10}".toString()
+        updateMap["id:104"] == "${50 * 2}".toString()
+    }
+
+    void "can handle circular dependencies by throwing an error"() {
+        given:
+        def definition = aDefinition(
+                aFieldDefinition(1, "field1", "field1"),
+                aFieldDefinition(2, "field2", "\$calc.multiply(var.field3,2) \$var.field2"),
+                aFieldDefinition(3, "field3", "\$calc.multiply(var.field2,2) \$var.field3"),
+        )
+
+        def recordmMsg = aRecordmMessage(
+                aFieldMap(definition, 1, 101, "1000"),
+                aFieldMap(definition, 2, 102, 50),
+                aFieldMap(definition, 3, 103, null),
+        )
+
+        when:
         def calculator = new DefinitionCalculator(definition)
 
+        then:
         try {
             calculator.calculate(recordmMsg)
         } catch (RuntimeException e) {
-            assertEquals(e.getMessage(), "Cyclic dependency detected, path: fd:1,field1 -> fd:2,field2 -> fd:1,field1 -> fd:2,field2")
+            e.getMessage() == "Cyclic dependency detected, path: fd:1,field1 -> fd:2,field2 -> fd:1,field1 -> fd:2,field2"
         }
     }
 
+    void "ignore invisible fields"() {
+        given:
+        def definition = aDefinition(
+                aFieldDefinition(1, "field1", "field1"),
+                aFieldDefinition(2, "field2", "\$var.field2"),
+                aFieldDefinition(2, "field3", "\$var.fieldwithsamename"),
+                aFieldDefinition(3, "field4", "\$var.fieldwithsamename \$hint[should not be parto of the message]"),
+                aFieldDefinition(4, "field5", "\$calc.multiply(var.field1,var.fieldwithsamename)"),
+        )
 
-    static def buildField(id, fieldDefinition, value) {
-        return [
-                id             : id,
-                value          : value,
-                fieldDefinition: fieldDefinition
-        ]
+        def recordmMsg = aRecordmMessage(
+                aFieldMap(definition, 1, 101, "1000"),
+                aFieldMap(definition, 2, 102, "1"),
+                aFieldMap(definition, 3, 103, "10"),
+                aFieldMap(definition, 4, 104, null),
+        )
+
+        when:
+        def calculator = new DefinitionCalculator(definition)
+        def updateMap = calculator.calculate(recordmMsg)
+
+        then:
+        updateMap["id:104"] == "${1 * 10}".toString()
     }
-
 }

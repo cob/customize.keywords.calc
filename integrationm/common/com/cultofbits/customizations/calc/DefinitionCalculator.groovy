@@ -17,7 +17,18 @@ class DefinitionCalculator {
     // All field definitions that have $calc.<operation>
     protected Map<Integer, CalcExpr> fdCalcExprMapById = [:]
 
+    // log4j
+    private Object log
+
     DefinitionCalculator(definition) {
+        this.defName = definition.name
+        this.defVersion = definition.version
+
+        this.processDefinition(definition)
+    }
+
+    DefinitionCalculator(definition, log) {
+        this.log = log
         this.defName = definition.name
         this.defVersion = definition.version
 
@@ -61,6 +72,15 @@ class DefinitionCalculator {
                 }
     }
 
+    private consoleLog(message) {
+        if (log != null) {
+            log.info(message)
+
+        } else {
+            println(message)
+        }
+    }
+
     /**
      * Perform calculation in the necessary instance fields
      * @param recordmMsg the recordm event message
@@ -73,7 +93,7 @@ class DefinitionCalculator {
             def newValue = getFieldValue(field, null, calcContext, new ArrayList<StackEntry>())
 
             if (newValue != field.value) {
-                map << [("id:${field.id}".toString()): "${newValue}".toString()]
+                map << [("id:${field.id}".toString()): newValue instanceof BigDecimal ? newValue.stripTrailingZeros().toPlainString() : "${newValue}".toString()]
             }
 
             map
@@ -106,52 +126,78 @@ class DefinitionCalculator {
         stack << stackEntry
 
         // it is a $calc but it hasn't been calculated yet.
-        def argValues = calcExpr.args
-                .collect { arg -> !arg.startsWith("var") ? [arg] : fdVarsByMapVarName[arg].collect { fd -> calcContext.fieldMapByFieldDefId[fd.id]?.collect { getFieldValue(it, field, calcContext, stack) } } }
-                .flatten()
-                .collect { new BigDecimal(it ?: 0) }
-
-        // println("calc instanceId=${calcContext.recordmMsg.instance.id} " +
-        //         "fieldId=${field.id} fieldDefinitionName=${field.fieldDefinition.name} " +
-        //         "args=${calcExpr.args} " +
-        //         "argValues=${argValues}")
-
-        def result = new BigDecimal(0)
-
-        if (calcExpr.operation == "multiply" && argValues.size() > 0) {
-            result = 1
-            argValues.each { arg -> result = result.multiply(arg) }
-
-        } else if (calcExpr.operation == "divide" && argValues.size() == 2 && (argValues[1] ?: 0 != 0)) {
-            result = argValues[0]
-            result = result.divide(argValues[1], 8, RoundingMode.HALF_UP)
-
-        } else if (calcExpr.operation == "sum") {
-            argValues.each { arg -> result = result + arg }
-
-        } else if (calcExpr.operation == "subtract" && argValues.size() == 2) {
-            result = argValues[0]
-            result = result.subtract(argValues[1])
-
-        } else if (calcExpr.operation == "diffDays" && argValues.size() == 2) {
-            result = argValues[0]
-            result = result.subtract(argValues[1])
-            result = result.divide(new BigDecimal(24 * 60 * 60 * 1000), 8, RoundingMode.HALF_UP)
-
-        } else if (calcExpr.operation == "diffHours" && argValues.size() == 2) {
-            result = argValues[0]
-            result = result.subtract(argValues[1])
-            result = result.divide(new BigDecimal(60 * 60 * 1000), 8, RoundingMode.HALF_UP)
-
-        } else if (calcExpr.operation == "diifMinutes" && argValues.size() == 2) {
-            result = argValues[0]
-            result = result.subtract(argValues[1])
-            result = result.divide(new BigDecimal(60 * 1000), 8, RoundingMode.HALF_UP)
+        def argValues = calcExpr.args.collect { arg ->
+            !arg.startsWith("var") ? [arg] : fdVarsByMapVarName[arg].collect { fd ->
+                calcContext.fieldMapByFieldDefId[fd.id]
+                        ?.findAll { it != null } // only calculate fields that are part of the message
+                        .collect { getFieldValue(it, field, calcContext, stack) }
+            }.flatten()
         }
 
-        calcContext.cache[field.fieldDefinition.id] = result
+        def result = new BigDecimal(0)
+        def flattenArgValues = argValues
+                .flatten()
+                .findAll { it != null }
+                .collect { new BigDecimal(it ?: 0) }
 
-        result.stripTrailingZeros().toPlainString()
+        switch (calcExpr.operation) {
+            case "multiply":
+                result = 1
+                flattenArgValues.each { result = result.multiply(it) }
+                break;
+            case "divide":
+                if (flattenArgValues.size() == 2 && (flattenArgValues[1] ?: 0 != 0)) {
+                    result = flattenArgValues[0]
+                    result = result.divide(flattenArgValues[1], 8, RoundingMode.HALF_UP)
+                }
+                break;
+            case "sum":
+                flattenArgValues.each { result = result + it }
+                break;
+            case "subtract":
+                if (flattenArgValues.size() == 2) {
+                    result = flattenArgValues[0]
+                    result = result.subtract(flattenArgValues[1])
+                }
+                break;
+            case "diffDays":
+                if (flattenArgValues.size() == 2) {
+                    result = flattenArgValues[0]
+                    result = result.subtract(flattenArgValues[1])
+                    result = result.divide(new BigDecimal(24 * 60 * 60 * 1000), 8, RoundingMode.HALF_UP)
+                }
+                break;
+            case "diffHours":
+                if (flattenArgValues.size() == 2) {
+                    result = flattenArgValues[0]
+                    result = result.subtract(flattenArgValues[1])
+                    result = result.divide(new BigDecimal(60 * 60 * 1000), 8, RoundingMode.HALF_UP)
+
+                }
+                break;
+            case "diifMinutes":
+                if (flattenArgValues.size() == 2) {
+                    result = flattenArgValues[0]
+                    result = result.subtract(flattenArgValues[1])
+                    result = result.divide(new BigDecimal(60 * 1000), 8, RoundingMode.HALF_UP)
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown operation ")
+        }
+
+        consoleLog("_calc instanceId=${calcContext.recordmMsg.instance.id} " +
+                "fieldId=${field.id} fieldDefinitionName=${field.fieldDefinition.name} " +
+                "operation=${calcExpr.operation} " +
+                "args=${calcExpr.args} " +
+                "argValues=${argValues} " +
+                "flattenArgValues=${flattenArgValues} " +
+                "result=${result}")
+
+        result.with {
+            calcContext.cache[field.fieldDefinition.id] = it
+            it
+        }
     }
 
     /**

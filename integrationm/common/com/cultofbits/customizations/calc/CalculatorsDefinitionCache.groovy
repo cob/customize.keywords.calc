@@ -11,22 +11,22 @@ class CalculatorsDefinitionCache {
             .expireAfterWrite(1, TimeUnit.HOURS)
             .build()
 
-    static DefinitionCalculator getCalculatorForDefinition(RecordmMsg recordmMsg, RecordmActionPack recordmActionPack) {
+    static DefinitionCalculator getCalculatorForDefinition(RecordmMsg recordmMsg, RecordmActionPack recordmActionPack, log) {
         String definitionName = recordmMsg.type
 
-        def calculator = getFromCache(definitionName, recordmActionPack)
+        def calculator = getFromCache(definitionName, recordmActionPack, log)
         if (calculator.defVersion == recordmMsg.definitionVersion) {
             return calculator
 
         } else {
             cacheOfCalcFieldsForDefinition.invalidate(definitionName);
-            return getFromCache(definitionName, recordmActionPack)
+            return getFromCache(definitionName, recordmActionPack, log)
         }
     }
 
-    private static DefinitionCalculator getFromCache(String definitionName, recordmActionPack) {
+    private static DefinitionCalculator getFromCache(String definitionName, recordmActionPack, log) {
         cacheOfCalcFieldsForDefinition.get(
                 definitionName,
-                { recordmActionPack.getDefinition(definitionName)?.with { r -> new DefinitionCalculator(r.getBody()) } })
+                { recordmActionPack.getDefinition(definitionName)?.with { r -> new DefinitionCalculator(r.getBody(), log) } })
     }
 }
