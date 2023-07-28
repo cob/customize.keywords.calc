@@ -37,7 +37,7 @@ class DefinitionCalculator {
 
     protected processDefinition(Definition definition) {
         // Collect all field definitions with $var.*
-        fdVarsByMapVarName = definition.fieldDefinitions
+        fdVarsByMapVarName = definition.allFields
                 .findAll { fd -> fd.description != null && fd.description.indexOf("\$var.") != -1 }
                 .inject([:] as Map<String, List<FieldDefinition>>) { map, fd ->
                     def words = fd.description =~ /([^\s]+)/
@@ -56,7 +56,7 @@ class DefinitionCalculator {
                 }
 
         // Collect all field definitions with $calc.*
-        fdCalcExprMapById = definition.fieldDefinitions
+        fdCalcExprMapById = definition.allFields
                 .findAll { fd -> fd.description =~ /[$]calc\./ }
                 .inject([:] as Map<Integer, CalcExpr>) { map, fd ->
                     def op = (fd.description =~ /.*[$]calc.([^(]+)/).with { it[0][1] }
