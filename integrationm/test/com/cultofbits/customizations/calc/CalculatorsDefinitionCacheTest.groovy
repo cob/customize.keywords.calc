@@ -2,10 +2,11 @@ package com.cultofbits.customizations.calc
 
 import com.cultofbits.integrationm.service.actionpack.RecordmActionPack
 import com.cultofbits.integrationm.service.dictionary.ReusableResponse
-import com.cultofbits.integrationm.service.dictionary.recordm.Definition
-import com.cultofbits.integrationm.service.dictionary.recordm.FieldDefinition
 import com.cultofbits.integrationm.service.dictionary.recordm.RecordmMsg
 import spock.lang.Specification
+
+import static com.cultofbits.customizations.utils.RmHelper.aDefinition
+import static com.cultofbits.customizations.utils.RmHelper.aFieldDefinition
 
 class CalculatorsDefinitionCacheTest extends Specification {
 
@@ -14,23 +15,19 @@ class CalculatorsDefinitionCacheTest extends Specification {
     }
 
     void "can load definition from recordm"() {
-        given: "no definition is cache"
+        given: "no definition is cached"
         def msg = new RecordmMsg([
                 type               : "dummy-definition",
                 "definitionVersion": 1
         ])
 
-        def definition = new Definition().with {
-            it.name = "dummy-definition"
-            it.version = 1
-            it
-        }
+        def definition = aDefinition()
 
         def reusableResponse = Mock(ReusableResponse.class)
         reusableResponse.getBody() >> definition
 
         def recordm = Mock(RecordmActionPack.class)
-        recordm.getDefinition("dummy-definition") >> reusableResponse
+        recordm.getDefinition("definition 1") >> reusableResponse
 
         def log = Object.class
 
@@ -46,35 +43,23 @@ class CalculatorsDefinitionCacheTest extends Specification {
         given: "definition version is different from recordm message"
 
         CalculatorsDefinitionCache.cacheOfCalcFieldsForDefinition.put(
-                "dummy-definition",
-                new DefinitionCalculator(new Definition().with {
-                    it.name = "dummy-definition"
-                    it.version = 1
-                    it
-                }))
+                "definition 1",
+                new DefinitionCalculator(aDefinition()))
 
         def msg = new RecordmMsg([
-                type               : "dummy-definition",
+                type               : "definition 1",
                 "definitionVersion": 2
         ])
 
-        def definition = new Definition().with {
-            it.name = "dummy-definition"
-            it.version = 2
-            it.fieldDefinitions = [
-                    new FieldDefinition().with {
-                        it.id = 0; it.name = "field0";
-                        it
-                    },
-            ]
-            it
-        }
+        def definition = aDefinition(
+                aFieldDefinition(0, "field0", null)
+        )
 
         def reusableResponse = Mock(ReusableResponse.class)
         reusableResponse.getBody() >> definition
 
         def recordm = Mock(RecordmActionPack.class)
-        recordm.getDefinition("dummy-definition") >> reusableResponse
+        recordm.getDefinition("definition 1") >> reusableResponse
 
         def log = Object.class
 
