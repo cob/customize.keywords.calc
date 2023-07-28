@@ -9,8 +9,12 @@
 ##
 ## Examples:
 ##
-##     * Copy confm and recordm confs from cobdemo to /tmp
-##     ./generate-activities.sh -d 1 -p 1594
+##     * run all tests
+##     ./run-tests.sh
+##
+##     * run groovy tests
+##     ./run-tests.sh -t groovy
+
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
