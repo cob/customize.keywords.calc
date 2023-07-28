@@ -93,7 +93,7 @@ class DefinitionCalculator {
             def newValue = getFieldValue(field, null, calcContext, new ArrayList<StackEntry>())
 
             if (newValue != field.value) {
-                map << [("id:${field.id}".toString()): newValue instanceof BigDecimal ? newValue.stripTrailingZeros().toPlainString() : "${newValue}".toString()]
+                map << [("id:${field.id}".toString()): newValue]
             }
 
             map
@@ -113,7 +113,7 @@ class DefinitionCalculator {
         }
 
         if (calcExpr != null && calcContext.cache[field.fieldDefinition.id] != null) {
-            return calcContext.cache[field.fieldDefinition.id].toString()
+            return calcContext.cache[field.fieldDefinition.id]
         }
 
         def stackEntry = new StackEntry(field, parentField)
@@ -186,6 +186,9 @@ class DefinitionCalculator {
                 throw new IllegalArgumentException("Unknown operation ")
         }
 
+        result = result.stripTrailingZeros().toPlainString()
+        calcContext.cache[field.fieldDefinition.id] = result
+
         consoleLog("_calc instanceId=${calcContext.recordmMsg.instance.id} " +
                 "fieldId=${field.id} fieldDefinitionName=${field.fieldDefinition.name} " +
                 "operation=${calcExpr.operation} " +
@@ -194,10 +197,7 @@ class DefinitionCalculator {
                 "flattenArgValues=${flattenArgValues} " +
                 "result=${result}")
 
-        result.with {
-            calcContext.cache[field.fieldDefinition.id] = it
-            it
-        }
+        result
     }
 
     /**
