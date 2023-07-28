@@ -8,6 +8,8 @@ import java.math.RoundingMode
 
 class DefinitionCalculator {
 
+    private static final DEBUG = false
+
     protected String defName;
     protected Integer defVersion;
 
@@ -72,7 +74,9 @@ class DefinitionCalculator {
                 }
     }
 
-    private consoleLog(message) {
+    private logMessage(message) {
+        if (!DEBUG) return
+
         if (log != null) {
             log.info(message)
 
@@ -189,7 +193,7 @@ class DefinitionCalculator {
         result = result.stripTrailingZeros().toPlainString()
         calcContext.cache[field.fieldDefinition.id] = result
 
-        consoleLog("_calc instanceId=${calcContext.recordmMsg.instance.id} " +
+        logMessage("_calc instanceId=${calcContext.recordmMsg.instance.id} " +
                 "fieldId=${field.id} fieldDefinitionName=${field.fieldDefinition.name} " +
                 "operation=${calcExpr.operation} " +
                 "args=${calcExpr.args} " +
