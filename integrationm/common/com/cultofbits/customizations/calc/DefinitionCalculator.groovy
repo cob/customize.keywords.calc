@@ -14,10 +14,14 @@ class DefinitionCalculator {
     protected Integer defVersion;
 
     // a map with the key the var name (including var.) and the value the list of all fields
-    protected Map<String, List<FieldDefinition>> fdVarsByMapVarName = [:]
+    protected Map<String, List<FieldDefinition>> fdVarsMapByVarName = [:]
 
     // All field definitions that have $calc.<operation>
     protected Map<Integer, CalcExpr> fdCalcExprMapById = [:]
+
+    // If the
+    protected boolean invalidState = false;
+    protected String invalidStateMsg = null;
 
     // log4j
     private Object log
@@ -39,7 +43,7 @@ class DefinitionCalculator {
 
     protected processDefinition(Definition definition) {
         // Collect all field definitions with $var.*
-        fdVarsByMapVarName = definition.allFields
+        fdVarsMapByVarName = definition.allFields
                 .findAll { fd -> fd.description != null && fd.description.indexOf("\$var.") != -1 }
                 .inject([:] as Map<String, List<FieldDefinition>>) { map, fd ->
                     def words = fd.description =~ /([^\s]+)/
@@ -58,20 +62,39 @@ class DefinitionCalculator {
                 }
 
         // Collect all field definitions with $calc.*
-        fdCalcExprMapById = definition.allFields
-                .findAll { fd -> fd.description =~ /[$]calc\./ }
-                .inject([:] as Map<Integer, CalcExpr>) { map, fd ->
-                    def op = (fd.description =~ /.*[$]calc.([^(]+)/).with { it[0][1] }
-                    def args = (fd.description =~ /.*[$]calc.[^(]+\(([^(]+)\)/).with { it[0][1].tokenize(",") }
+        def previousFieldDefinition
+        for (FieldDefinition fieldDefinition : definition.allFields) {
+            def isCalc = fieldDefinition.description =~ /[$]calc\./
 
-                    map << [(fd.id): new CalcExpr().with {
-                        it.operation = op
-                        it.args = args
-                        it
-                    }]
+            if (isCalc) {
+                def op = (fieldDefinition.description =~ /.*[$]calc.([^(]+)/).with { it[0][1] }
+                def args = (fieldDefinition.description =~ /.*[$]calc.[^(]+\(([^(]+)\)/).with { it[0][1].tokenize(",") }
 
-                    map
+                def tratedArgs = []
+                for (String arg : args) {
+                    if (arg == "previous") {
+                        if (previousFieldDefinition != null) {
+                            tratedArgs << "previous:${previousFieldDefinition.id}"
+
+                        } else {
+                            invalidState = true
+                            invalidStateMsg = "No previous field available for field ${fieldDefinition}"
+                            return
+                        }
+                    } else {
+                        tratedArgs << arg
+                    }
                 }
+
+                fdCalcExprMapById << [(fieldDefinition.id): new CalcExpr().with {
+                    it.operation = op
+                    it.args = tratedArgs
+                    it
+                }]
+            }
+
+            previousFieldDefinition = fieldDefinition
+        }
     }
 
     private logMessage(message) {
@@ -91,6 +114,11 @@ class DefinitionCalculator {
      * @return a Map with all the updated fields
      */
     Map<String, String> calculate(RecordmMsg recordmMsg) {
+        if (invalidState) {
+            throw new IllegalStateException("[_calc] instanceId=${recordmMsg.id} definition is in invalid an state to calculate {{" +
+                    "errorMessage:${invalidStateMsg} }}")
+        }
+
         def calcContext = new CalcContext(recordmMsg)
 
         recordmMsg.instance.getFields().inject([:] as Map<String, String>) { map, Map<String, Object> field ->
@@ -131,11 +159,24 @@ class DefinitionCalculator {
 
         // it is a $calc but it hasn't been calculated yet.
         def argValues = calcExpr.args.collect { arg ->
-            !arg.startsWith("var") ? [arg] : fdVarsByMapVarName[arg].collect { fd ->
-                calcContext.fieldMapByFieldDefId[fd.id]
-                        ?.findAll { it != null } // only calculate fields that are part of the message
-                        .collect { getFieldValue(it, field, calcContext, stack) }
-            }.flatten()
+            def possibleValues
+
+            if (arg =~ "previous:\\d+") {
+                possibleValues = [calcContext.fieldMapByFieldDefId[arg.replaceAll("previous:", "").toInteger()]
+                                          ?.findAll { it != null }
+                                          .collect { getFieldValue(it, field, calcContext, stack) }]
+
+            } else if (arg.startsWith("var")) {
+                possibleValues = fdVarsMapByVarName[arg].collect { fd ->
+                    calcContext.fieldMapByFieldDefId[fd.id]
+                            ?.findAll { it != null } // only calculate fields that are part of the message
+                            .collect { getFieldValue(it, field, calcContext, stack) }
+                }
+            } else {
+                possibleValues = [arg]
+            }
+
+            possibleValues.flatten()
         }
 
         def result = new BigDecimal(0)
@@ -193,7 +234,7 @@ class DefinitionCalculator {
         result = result.stripTrailingZeros().toPlainString()
         calcContext.cache[field.fieldDefinition.id] = result
 
-        logMessage("_calc instanceId=${calcContext.recordmMsg.instance.id} " +
+        logMessage("[_calc] instanceId=${calcContext.recordmMsg.instance.id} " +
                 "fieldId=${field.id} fieldDefinitionName=${field.fieldDefinition.name} " +
                 "operation=${calcExpr.operation} " +
                 "args=${calcExpr.args} " +

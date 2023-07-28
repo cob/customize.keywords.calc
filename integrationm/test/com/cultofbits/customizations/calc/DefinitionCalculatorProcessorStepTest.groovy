@@ -20,9 +20,9 @@ class DefinitionCalculatorProcessorStepTest extends Specification {
         def calculator = new DefinitionCalculator(definition)
 
         then:
-        calculator.fdVarsByMapVarName["var.field1"].collect { it.id }.join(",") == "1"
-        calculator.fdVarsByMapVarName["var.field2"].collect { it.id }.join(",") == "2"
-        calculator.fdVarsByMapVarName["var.some.var.structure"].collect { it.id }.join(",") == "3,4"
+        calculator.fdVarsMapByVarName["var.field1"].collect { it.id }.join(",") == "1"
+        calculator.fdVarsMapByVarName["var.field2"].collect { it.id }.join(",") == "2"
+        calculator.fdVarsMapByVarName["var.some.var.structure"].collect { it.id }.join(",") == "3,4"
     }
 
     void "can parse field definitions with var and calc expressions"() {
@@ -41,9 +41,9 @@ class DefinitionCalculatorProcessorStepTest extends Specification {
         calculator.defName == definition.name
         calculator.defVersion == 1
 
-        calculator.fdVarsByMapVarName["var.field1"] == [definition.fieldDefinitions[0]]
-        calculator.fdVarsByMapVarName["var.field2"] == [definition.fieldDefinitions[1]]
-        calculator.fdVarsByMapVarName["var.field4"] == [definition.fieldDefinitions[3]]
+        calculator.fdVarsMapByVarName["var.field1"] == [definition.fieldDefinitions[0]]
+        calculator.fdVarsMapByVarName["var.field2"] == [definition.fieldDefinitions[1]]
+        calculator.fdVarsMapByVarName["var.field4"] == [definition.fieldDefinitions[3]]
 
         calculator.fdCalcExprMapById[3].operation == "multiply"
         calculator.fdCalcExprMapById[3].args == ["var.field1", "var.field2", "10"]

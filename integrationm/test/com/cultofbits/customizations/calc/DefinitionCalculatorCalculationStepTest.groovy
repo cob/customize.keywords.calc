@@ -32,26 +32,6 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
         updateMap["id:104"] == "${1000 + 1 + 10}".toString()
     }
 
-    void "ignore trailling zeros"() {
-        given:
-        def definition = aDefinition(
-                aFieldDefinition(1, "field1", "\$number \$var.field1 dummy"),
-                aFieldDefinition(2, "field2", "\$calc.multiply(var.field1,280,10)"),
-        )
-
-        def recordmMsg = aRecordmMessage(
-                aFieldMap(definition, 1, 101, "0.4"),
-                aFieldMap(definition, 2, 102, null),
-        )
-
-        when:
-        def calculator = new DefinitionCalculator(definition)
-        def updateMap = calculator.calculate(recordmMsg)
-
-        then:
-        updateMap["id:102"] == "1120"
-    }
-
     void "can calculate chained calculations"() {
         given:
         def definition = aDefinition(
@@ -122,13 +102,57 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
 
         when:
         def calculator = new DefinitionCalculator(definition)
+        calculator.calculate(recordmMsg)
 
         then:
-        try {
-            calculator.calculate(recordmMsg)
-        } catch (RuntimeException e) {
-            e.getMessage() == "Cyclic dependency detected, path: fd:1,field1 -> fd:2,field2 -> fd:1,field1 -> fd:2,field2"
-        }
+        def e = thrown(RuntimeException)
+        e.getMessage() == "Cyclic dependency detected, path: fd:2,field2 -> fd:3,field3 -> fd:2,field2 -> fd:3,field3"
+    }
+
+    void "can calculate with 'previous' calc arg"() {
+        given:
+        def definition = aDefinition(
+                aFieldDefinition(1, "field1", null),
+                aFieldDefinition(2, "field2", "\$calc.multiply(previous,2)"),
+                aFieldDefinition(3, "field3", "\$calc.multiply(previous,2)"),
+        )
+
+        def recordmMsg = aRecordmMessage(
+                aFieldMap(definition, 1, 101, "1000"),
+                aFieldMap(definition, 2, 102, null),
+                aFieldMap(definition, 3, 103, null),
+        )
+
+        when:
+        def calculator = new DefinitionCalculator(definition)
+        def updateMap = calculator.calculate(recordmMsg)
+
+        then:
+        updateMap["id:102"] == "${1000 * 2}".toString()
+        updateMap["id:103"] == "${(1000 * 2) * 2}".toString()
+    }
+
+    void "throw error when calculating instance with ´previous´ calc carg but no previous field"() {
+        given:
+        def definition = aDefinition(
+                aFieldDefinition(2, "field2", "\$calc.multiply(previous,2)"),
+                aFieldDefinition(3, "field3", "\$calc.multiply(previous,2)"),
+        )
+
+        def recordmMsg = aRecordmMessage(
+                aFieldMap(definition, 1, 101, "1000"),
+                aFieldMap(definition, 2, 102, null),
+                aFieldMap(definition, 3, 103, null),
+        )
+
+        when:
+        def calculator = new DefinitionCalculator(definition)
+        calculator.calculate(recordmMsg)
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.getMessage() == "[_calc] instanceId=null definition is in invalid an state to calculate {{" +
+                "errorMessage:No previous field available for field FieldDefinition{id=2, name='field2', description='\$calc.multiply(previous,2)', required=null} }}"
     }
 
     void "ignore invisible fields"() {
@@ -154,5 +178,25 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
 
         then:
         updateMap["id:104"] == "${1 * 10}".toString()
+    }
+
+    void "ignore trailling zeros"() {
+        given:
+        def definition = aDefinition(
+                aFieldDefinition(1, "field1", "\$number \$var.field1 dummy"),
+                aFieldDefinition(2, "field2", "\$calc.multiply(var.field1,280,10)"),
+        )
+
+        def recordmMsg = aRecordmMessage(
+                aFieldMap(definition, 1, 101, "0.4"),
+                aFieldMap(definition, 2, 102, null),
+        )
+
+        when:
+        def calculator = new DefinitionCalculator(definition)
+        def updateMap = calculator.calculate(recordmMsg)
+
+        then:
+        updateMap["id:102"] == "1120"
     }
 }
