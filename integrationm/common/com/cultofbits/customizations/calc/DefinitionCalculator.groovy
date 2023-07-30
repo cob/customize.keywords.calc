@@ -4,6 +4,7 @@ import com.cultofbits.integrationm.service.dictionary.recordm.Definition
 import com.cultofbits.integrationm.service.dictionary.recordm.FieldDefinition
 import com.cultofbits.integrationm.service.dictionary.recordm.RecordmMsg
 
+import java.lang.reflect.Field
 import java.math.RoundingMode
 
 class DefinitionCalculator {
@@ -67,32 +68,46 @@ class DefinitionCalculator {
                 def op = (fd.description =~ /.*[$]calc.([^(]+)/).with { it[0][1] }
                 def args = (fd.description =~ /.*[$]calc.[^(]+\(([^(]+)\)/).with { it[0][1].tokenize(",") }
 
-                def tratedArgs = []
+                def finalArgs = []
+
                 for (String arg : args) {
                     if (arg == "previous") {
                         if (previousFieldDefinition != null) {
-                            tratedArgs << "previous:${previousFieldDefinition.id}"
+                            finalArgs << "previous:${previousFieldDefinition.id}"
 
                         } else {
                             invalidState = true
                             invalidStateMsg = "No previous field available for field ${fd}"
                             return
                         }
+                    } else if (arg.startsWith("var")) {
+                        finalArgs.addAll(
+                                definition.findFields {it.description =~ /.*[$]$arg.*/ ? true : false }
+                                        .collect { it -> extractVar(it) }
+                        )
                     } else {
-                        tratedArgs << arg
+                        finalArgs << arg
                     }
                 }
 
                 fdCalcExprMapById << [(fd.id): new CalcExpr().with {
                     it.operation = op
-                    it.args = tratedArgs
+                    it.args = finalArgs.unique()
                     it
                 }]
             }
 
             previousFieldDefinition = fd
         }
+    }
 
+    private extractVar(FieldDefinition fd) {
+        def words = fd.description =~ /([^\s]+)/
+        def varArg = (0..words.getCount() - 1)
+                .findResult { i -> words[i][0].indexOf("\$var") != -1 ? words[i][0] : null }
+                ?.substring(1) // remove the initial $
+
+        return varArg
     }
 
     private logMessage(message) {

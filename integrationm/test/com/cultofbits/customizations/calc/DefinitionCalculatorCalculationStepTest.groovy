@@ -132,6 +132,37 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
         updateMap["id:103"] == "${(1000 * 2) * 2}".toString()
     }
 
+    void "can calculate with subparts"() {
+        given:
+        def definition = aDefinition(
+                aFieldDefinition(1, "field1", "\$var.total.chickens"),
+                aFieldDefinition(2, "field2", "\$var.total.dogs.small"),
+                aFieldDefinition(3, "field3", "\$var.total.dogs.big"),
+
+                aFieldDefinition(4, "field4", "\$calc.sum(var.total.dogs)"),
+                aFieldDefinition(5, "field5", "\$calc.sum(var.total)"),
+        )
+
+        def recordmMsg = aRecordmMessage(
+                // inputs
+                aFieldMap(definition, 1, 101, "10"),
+                aFieldMap(definition, 2, 102, "5"),
+                aFieldMap(definition, 3, 103, "2"),
+
+                // calcs
+                aFieldMap(definition, 4, 104, null),
+                aFieldMap(definition, 5, 105, null),
+        )
+
+        when:
+        def calculator = new DefinitionCalculator(definition)
+        def updateMap = calculator.calculate(recordmMsg)
+
+        then:
+        updateMap["id:104"] == "${5 + 2}".toString()
+        updateMap["id:105"] == "${10 + 5 + 2}".toString()
+    }
+
     void "throw error when calculating instance with definition in invalid state"() {
         given:
         def definition = aDefinition(
@@ -160,16 +191,16 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
         def definition = aDefinition(
                 aFieldDefinition(1, "field1", "field1"),
                 aFieldDefinition(2, "field2", "\$var.field2"),
-                aFieldDefinition(2, "field3", "\$var.fieldwithsamename"),
-                aFieldDefinition(3, "field4", "\$var.fieldwithsamename \$hint[should not be parto of the message]"),
-                aFieldDefinition(4, "field5", "\$calc.multiply(var.field1,var.fieldwithsamename)"),
+                aFieldDefinition(3, "field3", "\$var.fieldwithsamename"),
+                aFieldDefinition(4, "field4", "\$var.fieldwithsamename \$hint[should not be part of the message]"),
+                aFieldDefinition(5, "field5", "\$calc.multiply(var.field2,var.fieldwithsamename)"),
         )
 
         def recordmMsg = aRecordmMessage(
                 aFieldMap(definition, 1, 101, "1000"),
                 aFieldMap(definition, 2, 102, "1"),
                 aFieldMap(definition, 3, 103, "10"),
-                aFieldMap(definition, 4, 104, null),
+                aFieldMap(definition, 5, 105, null),
         )
 
         when:
@@ -177,7 +208,7 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
         def updateMap = calculator.calculate(recordmMsg)
 
         then:
-        updateMap["id:104"] == "${1 * 10}".toString()
+        updateMap["id:105"] == "${1 * 10}".toString()
     }
 
     void "ignore trailling zeros"() {

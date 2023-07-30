@@ -74,4 +74,27 @@ class DefinitionCalculatorProcessorStepTest extends Specification {
         calculator.fdCalcExprMapById[3].operation == "multiply"
         calculator.fdCalcExprMapById[3].args == ["previous:2", "4"]
     }
+
+    void "can process with subparts"() {
+        given:
+        def definition = aDefinition(
+                aFieldDefinition(1, "field1", "\$var.total.chickens"),
+                aFieldDefinition(2, "field2", "\$var.total.dogs.small"),
+                aFieldDefinition(3, "field3", "\$var.total.dogs.big"),
+
+                aFieldDefinition(4, "field4", "\$calc.sum(var.total.dogs)"),
+                aFieldDefinition(5, "field5", "\$calc.sum(var.total)"),
+        )
+
+        when:
+        def calculator = new DefinitionCalculator(definition)
+
+        then:
+        calculator.fdCalcExprMapById[4].operation == "sum"
+        calculator.fdCalcExprMapById[4].args == ["var.total.dogs.small", "var.total.dogs.big"]
+
+        calculator.fdCalcExprMapById[5].operation == "sum"
+        calculator.fdCalcExprMapById[5].args == ["var.total.chickens", "var.total.dogs.small", "var.total.dogs.big"]
+    }
+
 }
