@@ -42,33 +42,30 @@ class DefinitionCalculator {
     }
 
     protected processDefinition(Definition definition) {
-        // Collect all field definitions with $var.*
-        fdVarsMapByVarName = definition.allFields
-                .findAll { fd -> fd.description != null && fd.description.indexOf("\$var.") != -1 }
-                .inject([:] as Map<String, List<FieldDefinition>>) { map, fd ->
-                    def words = fd.description =~ /([^\s]+)/
-                    def varArg = (0..words.getCount() - 1)
-                            .findResult { i -> words[i][0].indexOf("\$var") != -1 ? words[i][0] : null }
-                            .substring(1) // remove the initial $
+        def allFields = definition.findFields { true }
 
-                    def varArgMapEntry = map[varArg]
-                    if (varArgMapEntry != null) {
-                        varArgMapEntry << fd
-                    } else {
-                        map << [(varArg): [fd]]
-                    }
-
-                    map
-                }
-
-        // Collect all field definitions with $calc.*
         def previousFieldDefinition
-        for (FieldDefinition fieldDefinition : definition.allFields) {
-            def isCalc = fieldDefinition.description =~ /[$]calc\./
 
+        for (FieldDefinition fd : allFields) {
+            def isVar = fd.description?.indexOf("\$var.") != -1
+            if (isVar) {
+                def words = fd.description =~ /([^\s]+)/
+                def varArg = (0..words.getCount() - 1)
+                        .findResult { i -> words[i][0].indexOf("\$var") != -1 ? words[i][0] : null }
+                        ?.substring(1) // remove the initial $
+
+                def varArgMapEntry = fdVarsMapByVarName[varArg]
+                if (varArgMapEntry != null) {
+                    varArgMapEntry << fd
+                } else {
+                    fdVarsMapByVarName << [(varArg): [fd]]
+                }
+            }
+
+            def isCalc = fd.description =~ /[$]calc\./
             if (isCalc) {
-                def op = (fieldDefinition.description =~ /.*[$]calc.([^(]+)/).with { it[0][1] }
-                def args = (fieldDefinition.description =~ /.*[$]calc.[^(]+\(([^(]+)\)/).with { it[0][1].tokenize(",") }
+                def op = (fd.description =~ /.*[$]calc.([^(]+)/).with { it[0][1] }
+                def args = (fd.description =~ /.*[$]calc.[^(]+\(([^(]+)\)/).with { it[0][1].tokenize(",") }
 
                 def tratedArgs = []
                 for (String arg : args) {
@@ -78,7 +75,7 @@ class DefinitionCalculator {
 
                         } else {
                             invalidState = true
-                            invalidStateMsg = "No previous field available for field ${fieldDefinition}"
+                            invalidStateMsg = "No previous field available for field ${fd}"
                             return
                         }
                     } else {
@@ -86,15 +83,16 @@ class DefinitionCalculator {
                     }
                 }
 
-                fdCalcExprMapById << [(fieldDefinition.id): new CalcExpr().with {
+                fdCalcExprMapById << [(fd.id): new CalcExpr().with {
                     it.operation = op
                     it.args = tratedArgs
                     it
                 }]
             }
 
-            previousFieldDefinition = fieldDefinition
+            previousFieldDefinition = fd
         }
+
     }
 
     private logMessage(message) {
@@ -115,7 +113,7 @@ class DefinitionCalculator {
      */
     Map<String, String> calculate(RecordmMsg recordmMsg) {
         if (invalidState) {
-            throw new IllegalStateException("[_calc] instanceId=${recordmMsg.id} definition is in invalid an state to calculate {{" +
+            throw new IllegalStateException("[_calc] instanceId=${recordmMsg.id} definition is in invalid state to calculate {{" +
                     "errorMessage:${invalidStateMsg} }}")
         }
 

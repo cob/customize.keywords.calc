@@ -132,7 +132,7 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
         updateMap["id:103"] == "${(1000 * 2) * 2}".toString()
     }
 
-    void "throw error when calculating instance with ´previous´ calc carg but no previous field"() {
+    void "throw error when calculating instance with definition in invalid state"() {
         given:
         def definition = aDefinition(
                 aFieldDefinition(2, "field2", "\$calc.multiply(previous,2)"),
@@ -151,8 +151,8 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.getMessage() == "[_calc] instanceId=null definition is in invalid an state to calculate {{" +
-                "errorMessage:No previous field available for field FieldDefinition{id=2, name='field2', description='\$calc.multiply(previous,2)', required=null} }}"
+        e.getMessage() == "[_calc] instanceId=null definition is in invalid state to calculate {{errorMessage:No previous field available for field " +
+                "FieldDefinition{id=2, name='field2', description='\$calc.multiply(previous,2)', duplicable=false, required=null} }}"
     }
 
     void "ignore invisible fields"() {

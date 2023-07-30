@@ -17,7 +17,7 @@ class CalculatorsDefinitionCacheTest extends Specification {
     void "can load definition from recordm"() {
         given: "no definition is cached"
         def msg = new RecordmMsg([
-                type               : "dummy-definition",
+                type               : "definition 1",
                 "definitionVersion": 1
         ])
 
@@ -47,13 +47,12 @@ class CalculatorsDefinitionCacheTest extends Specification {
                 new DefinitionCalculator(aDefinition()))
 
         def msg = new RecordmMsg([
-                type               : "definition 1",
-                "definitionVersion": 2
+                type             : "definition 1",
+                definitionVersion: 2
         ])
 
-        def definition = aDefinition(
-                aFieldDefinition(0, "field0", null)
-        )
+        def definition = aDefinition(aFieldDefinition(0, "field0", null))
+        definition.version = 2
 
         def reusableResponse = Mock(ReusableResponse.class)
         reusableResponse.getBody() >> definition

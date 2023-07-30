@@ -4,6 +4,10 @@ import spock.lang.Specification
 
 import static com.cultofbits.customizations.utils.RmHelper.aDefinition
 import static com.cultofbits.customizations.utils.RmHelper.aFieldDefinition
+import static com.cultofbits.customizations.utils.RmHelper.aFieldMap
+import static com.cultofbits.customizations.utils.RmHelper.aFieldMap
+import static com.cultofbits.customizations.utils.RmHelper.aFieldMap
+import static com.cultofbits.customizations.utils.RmHelper.aRecordmMessage
 
 class DefinitionCalculatorProcessorStepTest extends Specification {
 
@@ -52,4 +56,22 @@ class DefinitionCalculatorProcessorStepTest extends Specification {
         calculator.fdCalcExprMapById[4].args == ["var.field1", "10"]
     }
 
+    void "can parse definition with 'previous' calc arg"() {
+        given:
+        def definition = aDefinition(
+                aFieldDefinition(1, "field1", null),
+                aFieldDefinition(2, "field2", "\$calc.multiply(previous,2)"),
+                aFieldDefinition(3, "field3", "\$calc.multiply(previous,4)"),
+        )
+
+        when:
+        def calculator = new DefinitionCalculator(definition)
+
+        then:
+        calculator.fdCalcExprMapById[2].operation == "multiply"
+        calculator.fdCalcExprMapById[2].args == ["previous:1", "2"]
+
+        calculator.fdCalcExprMapById[3].operation == "multiply"
+        calculator.fdCalcExprMapById[3].args == ["previous:2", "4"]
+    }
 }

@@ -26,7 +26,7 @@ class RmHelper {
 
     def static aFieldMap(Definition definition, Integer fieldDefinitionId, id, value) {
         return [
-                fieldDefinition: definition.getFieldDefinition(fieldDefinitionId),
+                fieldDefinition: definition.getField(fieldDefinitionId),
                 id             : id,
                 value          : value,
         ]
