@@ -106,7 +106,7 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
 
         then:
         def e = thrown(RuntimeException)
-        e.getMessage() == "Cyclic dependency detected, path: fd:2,field2 -> fd:3,field3 -> fd:2,field2 -> fd:3,field3"
+        e.getMessage() == "Cyclic dependency detected, path: fd:2,field2 -> fd:3,field3 -> fd:2,field2"
     }
 
     void "can calculate with 'previous' calc arg"() {

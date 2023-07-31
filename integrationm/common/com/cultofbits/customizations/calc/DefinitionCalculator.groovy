@@ -82,7 +82,7 @@ class DefinitionCalculator {
                         }
                     } else if (arg.startsWith("var")) {
                         finalArgs.addAll(
-                                definition.findFields {it.description =~ /.*[$]$arg.*/ ? true : false }
+                                definition.findFields { it.description =~ /.*[$]$arg.*/ ? true : false }
                                         .collect { it -> extractVar(it) }
                         )
                     } else {
@@ -135,7 +135,7 @@ class DefinitionCalculator {
         def calcContext = new CalcContext(recordmMsg)
 
         recordmMsg.instance.getFields().inject([:] as Map<String, String>) { map, Map<String, Object> field ->
-            def newValue = getFieldValue(field, null, calcContext, new ArrayList<StackEntry>())
+            def newValue = getFieldValue(field, null, calcContext, new ArrayList())
 
             if (newValue != field.value) {
                 map << [("id:${field.id}".toString()): newValue]
@@ -148,7 +148,7 @@ class DefinitionCalculator {
     /**
      * Calculate a single field value
      */
-    String getFieldValue(field, parentField, calcContext, List<StackEntry> stack) {
+    String getFieldValue(field, parentField, calcContext, List stack) {
 
         def calcExpr = fdCalcExprMapById[field.fieldDefinition.id]
 
@@ -161,14 +161,13 @@ class DefinitionCalculator {
             return calcContext.cache[field.fieldDefinition.id]
         }
 
-        def stackEntry = new StackEntry(field, parentField)
-        if (stack.contains(stackEntry)) {
+        if (stack.contains(field)) {
             // Adding to the stack so we can easily print the path for the cyrcular dependency
-            stack << stackEntry
-            throw new RuntimeException("Cyclic dependency detected, path: ${stack.collect { it.toString() }.join(" -> ")}")
+            stack << field
+            throw new RuntimeException("Cyclic dependency detected, path: ${stack.collect { "fd:${it.fieldDefinition.id},${it.fieldDefinition.name}" }.join(" -> ")}")
         }
 
-        stack << stackEntry
+        stack << field
 
         // it is a $calc but it hasn't been calculated yet.
         def argValues = calcExpr.args.collect { arg ->
@@ -241,7 +240,8 @@ class DefinitionCalculator {
                 }
                 break;
             default:
-                throw new IllegalArgumentException("Unknown operation ")
+                throw new IllegalArgumentException("[_calc] Unknown operation instance instanceId=${calcContext.recordmMsg.instance.id} " +
+                        "operation=${calcExpr.operation}")
         }
 
         result = result.stripTrailingZeros().toPlainString()
@@ -296,41 +296,4 @@ class DefinitionCalculator {
             }
         }
     }
-
-    static class StackEntry {
-
-        def field
-        def parentField
-
-        StackEntry(field, parentField) {
-            this.field = field
-            this.parentField = parentField
-        }
-
-        boolean equals(o) {
-            if (this.is(o)) return true
-            if (o == null || getClass() != o.class) return false
-
-            StackEntry that = (StackEntry) o
-
-            if (field != that.field) return false
-            if (parentField != that.parentField) return false
-
-            return true
-        }
-
-        int hashCode() {
-            int result
-            result = (field != null ? field.hashCode() : 0)
-            result = 31 * result + (parentField != null ? parentField.hashCode() : 0)
-            return result
-        }
-
-
-        @Override
-        String toString() {
-            return "fd:${field.fieldDefinition.id},${field.fieldDefinition.name}"
-        }
-    }
-
 }
