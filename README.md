@@ -1,6 +1,6 @@
 # customize.keyword.calc
 
-## Depends on IntegrationM 14.3.0
+* Depends on IntegrationM 14.3.0
 
 ## Install
 

@@ -1,6 +1,6 @@
 import com.cultofbits.customizations.calc.CalculatorsDefinitionCache
 
-if (!(msg.user != "integrationm" && msg.product == "recordm" && msg.action =~ "add|update")) return
+if (msg.user == "integrationm" || msg.product != "recordm" || !(msg.action =~ "add|update")) return
 
 // ===================================================================================================
 
