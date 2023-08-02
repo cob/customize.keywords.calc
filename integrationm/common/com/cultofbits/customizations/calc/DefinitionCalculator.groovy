@@ -9,7 +9,7 @@ import java.math.RoundingMode
 
 class DefinitionCalculator {
 
-    private static final DEBUG = false
+    private DEBUG = false
 
     protected String defName;
     protected Integer defVersion;
@@ -134,6 +134,10 @@ class DefinitionCalculator {
 
         def calcContext = new CalcContext(recordmMsg)
 
+        logMessage("[_calc] instanceId=${calcContext.recordmMsg.instance.id} \n" +
+                "fdVarsMapByVarName=\n    " + fdVarsMapByVarName.collect { k, v -> "${k} -> ${v.id}" }.join("\n    ") + "\n\n" +
+                "fieldMapByFieldDefId=\n    " + calcContext.fieldMapByFieldDefId.collect { k, v -> "${k} -> ${v}" }.join("\n    ") + "\n")
+
         recordmMsg.instance.getFields().inject([:] as Map<String, String>) { map, Map<String, Object> field ->
             def newValue = getFieldValue(field, null, calcContext, new ArrayList())
 
@@ -247,13 +251,14 @@ class DefinitionCalculator {
         result = result.stripTrailingZeros().toPlainString()
         calcContext.cache[field.fieldDefinition.id] = result
 
-        logMessage("[_calc] instanceId=${calcContext.recordmMsg.instance.id} " +
-                "fieldId=${field.id} fieldDefinitionName=${field.fieldDefinition.name} " +
-                "operation=${calcExpr.operation} " +
-                "args=${calcExpr.args} " +
-                "argValues=${argValues} " +
-                "flattenArgValues=${flattenArgValues} " +
-                "result=${result}")
+        logMessage("[_calc] instanceId=${calcContext.recordmMsg.instance.id} \n" +
+                "calcExpr=${calcExpr}" +
+                "\n   fieldId=${field.id} fieldDefinitionName=${field.fieldDefinition.name} " +
+                "\n   args=${calcExpr.args} " +
+                "\n   fields=${calcExpr.args.collect { arg -> fdVarsMapByVarName[arg].collect { fd -> calcContext.fieldMapByFieldDefId[fd.id].collect { it.id }.join(',') } }} " +
+                "\n   argValues=${argValues} " +
+                "\n   flattenArgValues=${flattenArgValues} " +
+                "\n   result=${result}")
 
         result
     }

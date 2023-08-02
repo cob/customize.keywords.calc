@@ -97,4 +97,21 @@ class DefinitionCalculatorProcessorStepTest extends Specification {
         calculator.fdCalcExprMapById[5].args == ["var.total.chickens", "var.total.dogs.small", "var.total.dogs.big"]
     }
 
+    void "collect field definitions with samve var"() {
+        given:
+        def definition = aDefinition(
+                aFieldDefinition(1, "field1", "field1"),
+                aFieldDefinition(2, "field2", "\$var.field2"),
+                aFieldDefinition(3, "field3", "\$var.fieldwithsamename"),
+                aFieldDefinition(4, "field4", "\$var.fieldwithsamename"),
+                aFieldDefinition(5, "field5", "\$calc.multiply(var.field2,var.fieldwithsamename)"),
+        )
+
+        when:
+        def calculator = new DefinitionCalculator(definition)
+
+        then:
+        calculator.fdVarsMapByVarName["var.fieldwithsamename"].collect { it.id } == [3, 4]
+    }
+
 }
