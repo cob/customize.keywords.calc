@@ -51,7 +51,7 @@ def executeCalculations(calculationFields,instanceFields) {
                 // 		", calcValue:$novoResultado}}");
 
                 temporaryResults[calculation.fieldId] = novoResultado;
-                updates << [("id:${calculation.fieldId}".toString()): novoResultado]
+                updates << [(calculation.name) : novoResultado]
 
                 atLeastOneChangeFlag = true
             }
