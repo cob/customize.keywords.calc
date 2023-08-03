@@ -17,8 +17,11 @@ if (msg.product == "recordm-definition") cacheOfCalcFieldsForDefinition.invalida
 // ========================================================================================================
 def calculationFields = cacheOfCalcFieldsForDefinition.get(msg.type, { getAllCalculationFields(msg.type) })
 if (msg.user != "integrationm" && calculationFields.size() > 0 && msg.product == "recordm" && msg.action =~ "add|update") {
-    if (calculationFields.any { f -> msg.field(f.name).changed() }) {
-        recordm.update(msg.type, msg.instance.id, executeCalculations(calculationFields, msg.instance.fields));
+    if (calculationFields.any { calcField -> msg.field(calcField.name).changed() }) {
+        def updatedFields = executeCalculations(calculationFields, msg.instance.fields)
+        log.info("[_\$calc] Updating calc fields for instance ${msg.instance.id} updatedFields=${updatedFields}")
+
+        recordm.update(msg.type, msg.instance.id, updatedFields);
     }
 }
 // ========================================================================================================
