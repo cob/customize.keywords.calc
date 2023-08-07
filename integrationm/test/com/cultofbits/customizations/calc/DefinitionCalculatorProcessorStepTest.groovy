@@ -2,23 +2,23 @@ package com.cultofbits.customizations.calc
 
 import spock.lang.Specification
 
-import static com.cultofbits.customizations.utils.RmHelper.aDefinition
-import static com.cultofbits.customizations.utils.RmHelper.aFieldDefinition
-import static com.cultofbits.customizations.utils.RmHelper.aFieldMap
-import static com.cultofbits.customizations.utils.RmHelper.aFieldMap
-import static com.cultofbits.customizations.utils.RmHelper.aFieldMap
-import static com.cultofbits.customizations.utils.RmHelper.aRecordmMessage
+import static com.cultofbits.customizations.utils.DefinitionBuilder.aDefinition
+import static com.cultofbits.customizations.utils.FieldDefinitionBuilder.aFieldDefinition
+import static com.cultofbits.customizations.utils.FieldDefinitionBuilder.aNumberFieldDefinition
+
 
 class DefinitionCalculatorProcessorStepTest extends Specification {
 
     void "can detect field definitions with \$var"() {
         given:
-        def definition = aDefinition(
-                aFieldDefinition(1, "field1", "\$var.field1 dummy text"),
-                aFieldDefinition(2, "field2", "\$number(2) \$var.field2 \$hint[some hint]"),
-                aFieldDefinition(3, "field3", "\$var.some.var.structure \$number(2) \$hint[some hint]"),
-                aFieldDefinition(4, "field4", "\$number(2) \$hint[some hint] \$var.some.var.structure")
-        )
+
+        def definition = aDefinition()
+                .fieldDefinitions(
+                        aFieldDefinition().id(1).description("\$var.field1 dummy text").build(),
+                        aNumberFieldDefinition(2).id(2).description("\$var.field2 \$hint[some hint]", true).build(),
+                        aNumberFieldDefinition(2).id(3).description("\$var.some.var.structure \$hint[some hint]", true).build(),
+                        aNumberFieldDefinition(2).id(4).description(" \$hint[some hint] \$var.some.var.structure", true).build(),
+                ).build()
 
         when:
         def calculator = new DefinitionCalculator(definition)
@@ -31,12 +31,14 @@ class DefinitionCalculatorProcessorStepTest extends Specification {
 
     void "can parse field definitions with var and calc expressions"() {
         given:
-        def definition = aDefinition(
-                aFieldDefinition(1, "field1", "\$var.field1 dummy text"),
-                aFieldDefinition(2, "field2", "\$number(2) \$var.field2 \$hint[some hint]"),
-                aFieldDefinition(3, "field3", "\$calc.multiply(var.field1,var.field2,10)"),
-                aFieldDefinition(4, "field4", "\$var.field4 \$calc.multiply(var.field1,10)"),
-        )
+
+        def definition = aDefinition()
+                .fieldDefinitions(
+                        aFieldDefinition().id(1).description("\$var.field1 dummy text").build(),
+                        aFieldDefinition().id(2).description("\$number(2) \$var.field2 \$hint[some hint]").build(),
+                        aFieldDefinition().id(3).description("\$calc.multiply(var.field1,var.field2,10)").build(),
+                        aFieldDefinition().id(4).description("\$var.field4 \$calc.multiply(var.field1,10)").build(),
+                ).build()
 
         when:
         def calculator = new DefinitionCalculator(definition)
@@ -58,11 +60,12 @@ class DefinitionCalculatorProcessorStepTest extends Specification {
 
     void "can parse definition with 'previous' calc arg"() {
         given:
-        def definition = aDefinition(
-                aFieldDefinition(1, "field1", null),
-                aFieldDefinition(2, "field2", "\$calc.multiply(previous,2)"),
-                aFieldDefinition(3, "field3", "\$calc.multiply(previous,4)"),
-        )
+        def definition = aDefinition()
+                .fieldDefinitions(
+                        aFieldDefinition().id(1).build(),
+                        aFieldDefinition().id(2).description("\$calc.multiply(previous,2)").build(),
+                        aFieldDefinition().id(3).description("\$calc.multiply(previous,4)").build(),
+                ).build()
 
         when:
         def calculator = new DefinitionCalculator(definition)
@@ -77,14 +80,14 @@ class DefinitionCalculatorProcessorStepTest extends Specification {
 
     void "can process with subparts"() {
         given:
-        def definition = aDefinition(
-                aFieldDefinition(1, "field1", "\$var.total.chickens"),
-                aFieldDefinition(2, "field2", "\$var.total.dogs.small"),
-                aFieldDefinition(3, "field3", "\$var.total.dogs.big"),
+        def definition = aDefinition().fieldDefinitions(
+                aFieldDefinition().id(1).description("\$var.total.chickens").build(),
+                aFieldDefinition().id(2).description("\$var.total.dogs.small").build(),
+                aFieldDefinition().id(3).description("\$var.total.dogs.big").build(),
 
-                aFieldDefinition(4, "field4", "\$calc.sum(var.total.dogs)"),
-                aFieldDefinition(5, "field5", "\$calc.sum(var.total)"),
-        )
+                aFieldDefinition().id(4).description("\$calc.sum(var.total.dogs)").build(),
+                aFieldDefinition().id(5).description("\$calc.sum(var.total)").build(),
+        ).build()
 
         when:
         def calculator = new DefinitionCalculator(definition)
@@ -99,13 +102,13 @@ class DefinitionCalculatorProcessorStepTest extends Specification {
 
     void "collect field definitions with samve var"() {
         given:
-        def definition = aDefinition(
-                aFieldDefinition(1, "field1", "field1"),
-                aFieldDefinition(2, "field2", "\$var.field2"),
-                aFieldDefinition(3, "field3", "\$var.fieldwithsamename"),
-                aFieldDefinition(4, "field4", "\$var.fieldwithsamename"),
-                aFieldDefinition(5, "field5", "\$calc.multiply(var.field2,var.fieldwithsamename)"),
-        )
+        def definition = aDefinition().fieldDefinitions(
+                aFieldDefinition().id(1).description("field1").build(),
+                aFieldDefinition().id(2).description("\$var.field2").build(),
+                aFieldDefinition().id(3).description("\$var.fieldwithsamename").build(),
+                aFieldDefinition().id(4).description("\$var.fieldwithsamename").build(),
+                aFieldDefinition().id(5).description("\$calc.multiply(var.field2,var.fieldwithsamename)").build(),
+        ).build()
 
         when:
         def calculator = new DefinitionCalculator(definition)

@@ -1,12 +1,11 @@
 package com.cultofbits.customizations.calc
 
+import com.cultofbits.customizations.utils.DefinitionBuilder
+import com.cultofbits.customizations.utils.FieldDefinitionBuilder
 import com.cultofbits.integrationm.service.actionpack.RecordmActionPack
 import com.cultofbits.integrationm.service.dictionary.ReusableResponse
 import com.cultofbits.integrationm.service.dictionary.recordm.RecordmMsg
 import spock.lang.Specification
-
-import static com.cultofbits.customizations.utils.RmHelper.aDefinition
-import static com.cultofbits.customizations.utils.RmHelper.aFieldDefinition
 
 class CalculatorsDefinitionCacheTest extends Specification {
 
@@ -16,18 +15,19 @@ class CalculatorsDefinitionCacheTest extends Specification {
 
     void "can load definition from recordm"() {
         given: "no definition is cached"
+
+        def definition = DefinitionBuilder.aDefinition().build()
+
         def msg = new RecordmMsg([
-                type               : "definition 1",
+                type               : definition.name,
                 "definitionVersion": 1
         ])
-
-        def definition = aDefinition()
 
         def reusableResponse = Mock(ReusableResponse.class)
         reusableResponse.getBody() >> definition
 
         def recordm = Mock(RecordmActionPack.class)
-        recordm.getDefinition("definition 1") >> reusableResponse
+        recordm.getDefinition(definition.name) >> reusableResponse
 
         def log = Object.class
 
@@ -42,23 +42,30 @@ class CalculatorsDefinitionCacheTest extends Specification {
     void "can get latest version of definition from recordm"() {
         given: "definition version is different from recordm message"
 
+        def definitionName = "the definition"
+
+        def definition = DefinitionBuilder.aDefinition().name(definitionName).build()
+
         CalculatorsDefinitionCache.cacheOfCalcFieldsForDefinition.put(
-                "definition 1",
-                new DefinitionCalculator(aDefinition()))
+                definitionName,
+                new DefinitionCalculator(definition))
 
         def msg = new RecordmMsg([
-                type             : "definition 1",
+                type             : definitionName,
                 definitionVersion: 2
         ])
 
-        def definition = aDefinition(aFieldDefinition(0, "field0", null))
-        definition.version = 2
+        def definitionV2 = DefinitionBuilder.aDefinition()
+                .name(definitionName)
+                .version(2)
+                .fieldDefinitions(FieldDefinitionBuilder.aFieldDefinition().build())
+                .build()
 
         def reusableResponse = Mock(ReusableResponse.class)
-        reusableResponse.getBody() >> definition
+        reusableResponse.getBody() >> definitionV2
 
         def recordm = Mock(RecordmActionPack.class)
-        recordm.getDefinition("definition 1") >> reusableResponse
+        recordm.getDefinition(definitionName) >> reusableResponse
 
         def log = Object.class
 
@@ -69,5 +76,4 @@ class CalculatorsDefinitionCacheTest extends Specification {
         calculator.defName == msg.type
         calculator.defVersion == 2
     }
-
 }
