@@ -7,7 +7,7 @@ import static com.cultofbits.customizations.utils.FieldDefinitionBuilder.aFieldD
 import static com.cultofbits.customizations.utils.FieldDefinitionBuilder.aNumberFieldDefinition
 
 
-class DefinitionCalculatorProcessorStepTest extends Specification {
+class DefinitionCalculatorParsingStepTest extends Specification {
 
     void "can detect field definitions with \$var"() {
         given:

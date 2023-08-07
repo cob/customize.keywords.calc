@@ -91,6 +91,7 @@ class DefinitionCalculator {
                 }
 
                 fdCalcExprMapById << [(fd.id): new CalcExpr().with {
+                    it.fieldDefinition = fd
                     it.operation = op
                     it.args = finalArgs.unique()
                     it
@@ -139,7 +140,7 @@ class DefinitionCalculator {
                 "fieldMapByFieldDefId=\n    " + calcContext.fieldMapByFieldDefId.collect { k, v -> "${k} -> ${v}" }.join("\n    ") + "\n")
 
         recordmMsg.instance.getFields().inject([:] as Map<String, String>) { map, Map<String, Object> field ->
-            def newValue = getFieldValue(field, null, calcContext, new ArrayList())
+            def newValue = getFieldValue(field, calcContext, new ArrayList())
 
             if (newValue != field.value) {
                 map << [("id:${field.id}".toString()): newValue]
@@ -152,7 +153,7 @@ class DefinitionCalculator {
     /**
      * Calculate a single field value
      */
-    String getFieldValue(field, parentField, calcContext, List stack) {
+    String getFieldValue(field, calcContext, List stack) {
 
         def calcExpr = fdCalcExprMapById[field.fieldDefinition.id]
 
@@ -166,7 +167,7 @@ class DefinitionCalculator {
         }
 
         if (stack.contains(field)) {
-            // Adding to the stack so we can easily print the path for the cyrcular dependency
+            // Adding to the stack so we can easily print the path for the circular dependency
             stack << field
             throw new RuntimeException("Cyclic dependency detected, path: ${stack.collect { "fd:${it.fieldDefinition.id},${it.fieldDefinition.name}" }.join(" -> ")}")
         }
@@ -180,13 +181,13 @@ class DefinitionCalculator {
             if (arg =~ "previous:\\d+") {
                 possibleValues = [calcContext.fieldMapByFieldDefId[arg.replaceAll("previous:", "").toInteger()]
                                           ?.findAll { it != null }
-                                          .collect { getFieldValue(it, field, calcContext, stack) }]
+                                          .collect { getFieldValue(it, calcContext, stack) }]
 
             } else if (arg.startsWith("var")) {
                 possibleValues = fdVarsMapByVarName[arg].collect { fd ->
                     calcContext.fieldMapByFieldDefId[fd.id]
                             ?.findAll { it != null } // only calculate fields that are part of the message
-                            .collect { getFieldValue(it, field, calcContext, stack) }
+                            .collect { getFieldValue(it, calcContext, stack) }
                 }
             } else {
                 possibleValues = [arg]
@@ -267,6 +268,8 @@ class DefinitionCalculator {
      * Auxiliary class that represents the operation to perform
      */
     static class CalcExpr {
+        FieldDefinition fieldDefinition;
+
         // one of: sum, multiply, subtract, divide, diffHours, diifMinutes, diffDays
         String operation;
 
