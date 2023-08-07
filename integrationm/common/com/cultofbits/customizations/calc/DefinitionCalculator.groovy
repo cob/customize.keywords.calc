@@ -133,6 +133,10 @@ class DefinitionCalculator {
                     "errorMessage:${invalidStateMsg} }}")
         }
 
+        if (!fdCalcExprMapById.values().any { it -> recordmMsg.field(it.fieldDefinition.name).changed() }) {
+            return [:]
+        }
+
         def calcContext = new CalcContext(recordmMsg)
 
         logMessage("[_calc] instanceId=${calcContext.recordmMsg.instance.id} \n" +
