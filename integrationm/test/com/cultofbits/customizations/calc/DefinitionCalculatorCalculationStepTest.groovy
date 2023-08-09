@@ -23,11 +23,11 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
 
 
         def recordmMsg = RecordmMsgBuilder.aMessage()
-                .newFieldValue(definition, 1, 101, "1000")
-                .newFieldValue(definition, 2, 102, "1")
-                .newFieldValue(definition, 3, 103, "2")
-                .newFieldValue(definition, 4, 104, null)
-                .newFieldValue(definition, 5, 105, null)
+                .newField(definition, 1, 101, "1000")
+                .newField(definition, 2, 102, "1")
+                .newField(definition, 3, 103, "2")
+                .newField(definition, 4, 104, null)
+                .newField(definition, 5, 105, null)
                 .build()
 
         when:
@@ -49,11 +49,11 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
         ).build()
 
         def recordmMsg = RecordmMsgBuilder.aMessage()
-                .newFieldValue(definition, 1, 101, "1000")
-                .newFieldValue(definition, 2, 102, "50")
-                .newFieldValue(definition, 3, 103, null)
-                .newFieldValue(definition, 4, 104, null)
-                .newFieldValue(definition, 5, 105, null)
+                .newField(definition, 1, 101, "1000")
+                .newField(definition, 2, 102, "50")
+                .newField(definition, 3, 103, null)
+                .newField(definition, 4, 104, null)
+                .newField(definition, 5, 105, null)
                 .build()
 
         when:
@@ -76,11 +76,11 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
         ).build()
 
         def recordmMsg = RecordmMsgBuilder.aMessage()
-                .newFieldValue(definition, 1, 101, "1000")
-                .newFieldValue(definition, 2, 102, "50")
-                .newFieldValue(definition, 3, 103, null)
-                .newFieldValue(definition, 4, 104, null)
-                .newFieldValue(definition, 5, 105, null)
+                .newField(definition, 1, 101, "1000")
+                .newField(definition, 2, 102, "50")
+                .newField(definition, 3, 103, null)
+                .newField(definition, 4, 104, null)
+                .newField(definition, 5, 105, null)
                 .build()
 
         when:
@@ -101,9 +101,9 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
         ).build()
 
         def recordmMsg = RecordmMsgBuilder.aMessage()
-                .newFieldValue(definition, 1, 101, "1000")
-                .newFieldValue(definition, 2, 102, "50")
-                .newFieldValue(definition, 3, 103, null)
+                .newField(definition, 1, 101, "1000")
+                .newField(definition, 2, 102, "50")
+                .newField(definition, 3, 103, null)
                 .build()
 
         when:
@@ -124,9 +124,9 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
         ).build()
 
         def recordmMsg = RecordmMsgBuilder.aMessage()
-                .newFieldValue(definition, 1, 101, "1000")
-                .newFieldValue(definition, 2, 102, null)
-                .newFieldValue(definition, 3, 103, null)
+                .newField(definition, 1, 101, "1000")
+                .newField(definition, 2, 102, null)
+                .newField(definition, 3, 103, null)
                 .build()
 
         when:
@@ -150,12 +150,12 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
         ).build()
 
         def recordmMsg = RecordmMsgBuilder.aMessage()
-                .newFieldValue(definition, 1, 101, "10")
-                .newFieldValue(definition, 2, 102, "5")
-                .newFieldValue(definition, 3, 103, "2")
+                .newField(definition, 1, 101, "10")
+                .newField(definition, 2, 102, "5")
+                .newField(definition, 3, 103, "2")
                 // calcs
-                .newFieldValue(definition, 4, 104, null)
-                .newFieldValue(definition, 5, 105, null)
+                .newField(definition, 4, 104, null)
+                .newField(definition, 5, 105, null)
                 .build()
 
         when:
@@ -175,8 +175,8 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
         ).build()
 
         def recordmMsg = RecordmMsgBuilder.aMessage()
-                .newFieldValue(definition, 2, 102, null)
-                .newFieldValue(definition, 3, 103, null)
+                .newField(definition, 2, 102, null)
+                .newField(definition, 3, 103, null)
                 .build()
 
         when:
@@ -200,10 +200,10 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
         ).build()
 
         def recordmMsg = RecordmMsgBuilder.aMessage()
-                .newFieldValue(definition, 1, 101, "1000")
-                .newFieldValue(definition, 2, 102, "1")
-                .newFieldValue(definition, 3, 103, "10")
-                .newFieldValue(definition, 5, 105, null)
+                .newField(definition, 1, 101, "1000")
+                .newField(definition, 2, 102, "1")
+                .newField(definition, 3, 103, "10")
+                .newField(definition, 5, 105, null)
                 .build()
 
         when:
@@ -222,8 +222,8 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
         ).build()
 
         def recordmMsg = RecordmMsgBuilder.aMessage()
-                .newFieldValue(definition, 1, 101, "0.4")
-                .newFieldValue(definition, 2, 102, null)
+                .newField(definition, 1, 101, "0.4")
+                .newField(definition, 2, 102, null)
                 .build()
 
         when:
