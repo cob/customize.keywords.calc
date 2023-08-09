@@ -22,7 +22,7 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
                 ).build()
 
 
-        def recordmMsg = RecordmMsgBuilder.aMessage()
+        def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
                 .newField(definition, 1, 101, "1000")
                 .newField(definition, 2, 102, "1")
                 .newField(definition, 3, 103, "2")
@@ -48,7 +48,7 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
                 aFieldDefinition().id(5).name("field4-nullValue").description("\$var.nullValue").build(),
         ).build()
 
-        def recordmMsg = RecordmMsgBuilder.aMessage()
+        def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
                 .newField(definition, 1, 101, "1000")
                 .newField(definition, 2, 102, "50")
                 .newField(definition, 3, 103, null)
@@ -75,7 +75,7 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
                 aFieldDefinition().id(5).name("field5-nullValue").description("\$var.nullValue").build(),
         ).build()
 
-        def recordmMsg = RecordmMsgBuilder.aMessage()
+        def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
                 .newField(definition, 1, 101, "1000")
                 .newField(definition, 2, 102, "50")
                 .newField(definition, 3, 103, null)
@@ -100,7 +100,7 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
                 aFieldDefinition().id(3).description("\$calc.multiply(var.field2,2) \$var.field3").build(),
         ).build()
 
-        def recordmMsg = RecordmMsgBuilder.aMessage()
+        def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
                 .newField(definition, 1, 101, "1000")
                 .newField(definition, 2, 102, "50")
                 .newField(definition, 3, 103, null)
@@ -123,7 +123,7 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
                 aFieldDefinition().id(3).description("\$calc.multiply(previous,2)").build(),
         ).build()
 
-        def recordmMsg = RecordmMsgBuilder.aMessage()
+        def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
                 .newField(definition, 1, 101, "1000")
                 .newField(definition, 2, 102, null)
                 .newField(definition, 3, 103, null)
@@ -149,7 +149,7 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
                 aFieldDefinition().id(5).description("\$calc.sum(var.total)").build(),
         ).build()
 
-        def recordmMsg = RecordmMsgBuilder.aMessage()
+        def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
                 .newField(definition, 1, 101, "10")
                 .newField(definition, 2, 102, "5")
                 .newField(definition, 3, 103, "2")
@@ -174,7 +174,7 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
                 aFieldDefinition().id(3).description("\$calc.multiply(previous,2)").build(),
         ).build()
 
-        def recordmMsg = RecordmMsgBuilder.aMessage()
+        def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
                 .newField(definition, 2, 102, null)
                 .newField(definition, 3, 103, null)
                 .build()
@@ -199,7 +199,7 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
                 aFieldDefinition().id(5).description("\$calc.multiply(var.field2,var.fieldwithsamename)").build(),
         ).build()
 
-        def recordmMsg = RecordmMsgBuilder.aMessage()
+        def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
                 .newField(definition, 1, 101, "1000")
                 .newField(definition, 2, 102, "1")
                 .newField(definition, 3, 103, "10")
@@ -214,14 +214,14 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
         updateMap["id:105"] == "${1 * 10}".toString()
     }
 
-    void "ignore trailling zeros"() {
+    void "ignore trailing zeros"() {
         given:
         def definition = aDefinition().fieldDefinitions(
                 aNumberFieldDefinition(2).id(1).description("\$var.field1", true).build(),
                 aFieldDefinition().id(2).description("\$calc.multiply(var.field1,280,10)").build(),
         ).build()
 
-        def recordmMsg = RecordmMsgBuilder.aMessage()
+        def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
                 .newField(definition, 1, 101, "0.4")
                 .newField(definition, 2, 102, null)
                 .build()

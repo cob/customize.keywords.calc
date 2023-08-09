@@ -20,28 +20,20 @@ class RecordmMsgBuilder {
             ],
     ]
 
-    static RecordmMsgBuilder aMessage() {
-        return new RecordmMsgBuilder()
+    static RecordmMsgBuilder aMessage(String user, String type, String action) {
+        def builder = new RecordmMsgBuilder()
+        builder.msgBody.user = user
+        builder.msgBody.type = user
+        builder.msgBody.action = user
+        return builder
     }
 
-    def user(String user) {
-        msgBody.user = user
-        return this
-    }
-
-    def type(String type) {
-        msgBody.type = type
-        return this
-    }
-
-    def type(Definition definition) {
-        msgBody.type = definition.name
-        return this
-    }
-
-    def action(String action) {
-        msgBody.action = action
-        return this
+    static RecordmMsgBuilder aMessage(String user, Definition definition, String action) {
+        def builder = new RecordmMsgBuilder()
+        builder.msgBody.user = user
+        builder.msgBody.type = definition.name
+        builder.msgBody.action = action
+        return builder
     }
 
     def newField(Definition definition, Integer fieldDefinitionId, String value) {
