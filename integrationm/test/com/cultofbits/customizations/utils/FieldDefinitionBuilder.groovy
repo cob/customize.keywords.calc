@@ -6,11 +6,10 @@ import org.apache.commons.lang.math.RandomUtils
 
 class FieldDefinitionBuilder {
 
-    private FieldDefinition fieldDefinition;
+    private FieldDefinition fieldDefinition = new FieldDefinition();
 
     static FieldDefinitionBuilder aFieldDefinition() {
         def builder = new FieldDefinitionBuilder()
-        builder.fieldDefinition = new FieldDefinition()
         return builder
     }
 
@@ -21,36 +20,31 @@ class FieldDefinitionBuilder {
      */
     static FieldDefinitionBuilder aNumberFieldDefinition(Integer decimalPlaces) {
         def builder = new FieldDefinitionBuilder()
-        builder.fieldDefinition = new FieldDefinition()
         builder.fieldDefinition.description = "\$number(${decimalPlaces ?: 2})"
         return builder
     }
 
     static FieldDefinitionBuilder aDateFieldDefinition() {
         def builder = new FieldDefinitionBuilder()
-        builder.fieldDefinition = new FieldDefinition()
         builder.fieldDefinition.description = "\$date"
         return builder
     }
 
     static FieldDefinitionBuilder aDatetimeFieldDefinition() {
         def builder = new FieldDefinitionBuilder()
-        builder.fieldDefinition = new FieldDefinition()
         builder.fieldDefinition.description = "\$datetime"
         return builder
     }
 
     static FieldDefinitionBuilder aFieldDefinition(id, name, description, boolean required, boolean duplicable, FieldDefinition... childFields) {
         def builder = new FieldDefinitionBuilder()
-        builder.definition = new Definition().with {
-            it.id = id
-            it.name = name
-            it.description = description
-            it.required = required
-            it.duplicable = duplicable
-            it.fields = childFields.collect { cf -> cf.rootField = false; cf }
-            it
-        }
+
+        builder.fieldDefinition.id = id
+        builder.fieldDefinition.name = name
+        builder.fieldDefinition.description = description
+        builder.fieldDefinition.required = required
+        builder.fieldDefinition.duplicable = duplicable
+        builder.fieldDefinition.fields = childFields.collect { cf -> cf.rootField = false; cf }
         return builder
     }
 

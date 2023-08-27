@@ -57,7 +57,7 @@ class DefinitionBuilder {
             it.id = it.id ?: RandomUtils.nextInt()
             it.name = it.name ?: "definition-${it.id}"
             it.version = it.version ?: 1
-            it.fieldDefinitions = it.fieldDefinitions.collect { cf -> cf.rootField = true; cf } ?: []
+            it.fieldDefinitions = it.fieldDefinitions.collect { fd -> fd.rootField = true; fd } ?: []
             it
         }
     }
