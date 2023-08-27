@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-## Usage: ./run-tests.sh [-a] [-t groovy|js]
+## Usage: ./run-tests.sh [-t be|fe]
 ## Summary: Run unit tests
 ##
 ## Options:
-##    -a: the nunber of days ahead to generate activitiss
-##    -t: apply to only this plan
+##    -t: run specific type of tests: be (backend), fe (frontend)
 ##    -h: print help information
 ##
 ## Examples:
@@ -12,38 +11,33 @@
 ##     * run all tests
 ##     ./run-tests.sh
 ##
-##     * run groovy tests
-##     ./run-tests.sh -t groovy
+##     * run backend tests
+##     ./run-tests.sh -t be
 
-
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 all="false"
 type=""
 
-while getopts "d:p:rh" optname
-do
-   case "$optname" in
-      "a")
-         all="true"
-         ;;
-      "p")
-         type="$OPTARG"
-         ;;
-      "h")
-         print_help="true"
-         ;;
-      "?")
-         echo "Unknown option $OPTARG"
-         ;;
-      ":")
-         echo "No argument value for option $OPTARG"
-         ;;
-      *)
-         # Should not occur
-         echo "Unknown error while processing options"
-         ;;
-   esac
+while getopts "t:h" optname; do
+  case "$optname" in
+  "t")
+    type="$OPTARG"
+    ;;
+  "h")
+    print_help="true"
+    ;;
+  "?")
+    echo "Unknown option $OPTARG"
+    ;;
+  ":")
+    echo "No argument value for option $OPTARG"
+    ;;
+  *)
+    # Should not occur
+    echo "Unknown error while processing options"
+    ;;
+  esac
 done
 
 if [[ "$print_help" == "true" ]]; then
@@ -56,8 +50,12 @@ if [[ "$all" == "false" ]] && [[ "$type" == "" ]]; then
   all="true"
 fi
 
-if [[ "$all" == "true" ]] || [[ "$type" == "groovy" ]]; then
-  if  [[ -f "integrationm/pom.xml" ]]; then
+if [[ "$all" == "true" ]] || [[ "$type" == "be" ]]; then
+  if [[ -f "integrationm/pom.xml" ]]; then
     (cd integrationm && mvn clean test)
+  fi
+
+  if [[ -f "others/recordm-validators/pom.xml" ]]; then
+    (cd others/recordm-validators && mvn clean test)
   fi
 fi
