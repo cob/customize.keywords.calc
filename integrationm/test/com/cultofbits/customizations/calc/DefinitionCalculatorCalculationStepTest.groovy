@@ -5,7 +5,6 @@ import spock.lang.Specification
 
 import static com.cultofbits.customizations.utils.DefinitionBuilder.aDefinition
 import static com.cultofbits.customizations.utils.FieldDefinitionBuilder.aFieldDefinition
-import static com.cultofbits.customizations.utils.FieldDefinitionBuilder.aNumberFieldDefinition
 
 
 class DefinitionCalculatorCalculationStepTest extends Specification {
@@ -14,11 +13,11 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
         given:
         def definition = aDefinition()
                 .fieldDefinitions(
-                        aFieldDefinition().id(1).description("\$var.field1 dummy text").build(),
-                        aNumberFieldDefinition(2).id(2).description("\$var.field2 \$hint[some hint]", true).build(),
-                        aNumberFieldDefinition(2).id(3).description("\$var.some.var.structure \$hint[some hint]", true).build(),
-                        aFieldDefinition().id(4).description("\$calc.sum(var.field1,var.field2,10,var.nullValue)").build(),
-                        aFieldDefinition().id(5).name("nullValue").description("\$var.nullValue").build(),
+                        aFieldDefinition().id(1).description("\$var.field1 dummy text"),
+                        aFieldDefinition().id(2).description("\$number(2) \$var.field2 \$hint[some hint]"),
+                        aFieldDefinition().id(3).description("\$var.some.var.structure \$hint[some hint]"),
+                        aFieldDefinition().id(4).description("\$calc.sum(var.field1,var.field2,10,var.nullValue)"),
+                        aFieldDefinition().id(5).name("nullValue").description("\$var.nullValue"),
                 ).build()
 
 
@@ -41,11 +40,11 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
     void "can calculate chained calculations"() {
         given:
         def definition = aDefinition().fieldDefinitions(
-                aFieldDefinition().id(1).description("field0").build(),
-                aFieldDefinition().id(2).description("\$var.field1").build(),
-                aFieldDefinition().id(3).description("\$calc.multiply(var.field1,2) \$var.field2").build(),
-                aFieldDefinition().id(4).description("\$calc.sum(var.field1,var.field2,10,var.nullValue)").build(),
-                aFieldDefinition().id(5).name("field4-nullValue").description("\$var.nullValue").build(),
+                aFieldDefinition().id(1).description("field0"),
+                aFieldDefinition().id(2).description("\$var.field1"),
+                aFieldDefinition().id(3).description("\$calc.multiply(var.field1,2) \$var.field2"),
+                aFieldDefinition().id(4).description("\$calc.sum(var.field1,var.field2,10,var.nullValue)"),
+                aFieldDefinition().id(5).name("field4-nullValue").description("\$var.nullValue"),
         ).build()
 
         def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
@@ -68,11 +67,11 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
     void "can calculate chained calculations with fields located after"() {
         given:
         def definition = aDefinition().fieldDefinitions(
-                aFieldDefinition().id(1).description("field1").build(),
-                aFieldDefinition().id(2).description("\$var.field2").build(),
-                aFieldDefinition().id(3).description("\$calc.sum(var.field2,var.field4,10,var.nullValue)").build(),
-                aFieldDefinition().id(4).description("\$calc.multiply(var.field2,2) \$var.field4").build(),
-                aFieldDefinition().id(5).name("field5-nullValue").description("\$var.nullValue").build(),
+                aFieldDefinition().id(1).description("field1"),
+                aFieldDefinition().id(2).description("\$var.field2"),
+                aFieldDefinition().id(3).description("\$calc.sum(var.field2,var.field4,10,var.nullValue)"),
+                aFieldDefinition().id(4).description("\$calc.multiply(var.field2,2) \$var.field4"),
+                aFieldDefinition().id(5).name("field5-nullValue").description("\$var.nullValue"),
         ).build()
 
         def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
@@ -95,9 +94,9 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
     void "can handle circular dependencies by throwing an error"() {
         given:
         def definition = aDefinition().fieldDefinitions(
-                aFieldDefinition().id(1).description("field1").build(),
-                aFieldDefinition().id(2).description("\$calc.multiply(var.field3,2) \$var.field2").build(),
-                aFieldDefinition().id(3).description("\$calc.multiply(var.field2,2) \$var.field3").build(),
+                aFieldDefinition().id(1).description("field1"),
+                aFieldDefinition().id(2).description("\$calc.multiply(var.field3,2) \$var.field2"),
+                aFieldDefinition().id(3).description("\$calc.multiply(var.field2,2) \$var.field3"),
         ).build()
 
         def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
@@ -118,9 +117,9 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
     void "can calculate with 'previous' calc arg"() {
         given:
         def definition = aDefinition().fieldDefinitions(
-                aFieldDefinition().id(1).build(),
-                aFieldDefinition().id(2).description("\$calc.multiply(previous,2)").build(),
-                aFieldDefinition().id(3).description("\$calc.multiply(previous,2)").build(),
+                aFieldDefinition().id(1),
+                aFieldDefinition().id(2).description("\$calc.multiply(previous,2)"),
+                aFieldDefinition().id(3).description("\$calc.multiply(previous,2)"),
         ).build()
 
         def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
@@ -141,19 +140,19 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
     void "can calculate with subparts"() {
         given:
         def definition = aDefinition().fieldDefinitions(
-                aFieldDefinition().id(1).description("\$var.total.chickens").build(),
-                aFieldDefinition().id(2).description("\$var.total.dogs.small").build(),
-                aFieldDefinition().id(3).description("\$var.total.dogs.big").build(),
+                aFieldDefinition().id(1).description("\$var.total.chickens"),
+                aFieldDefinition().id(2).description("\$var.total.dogs.small"),
+                aFieldDefinition().id(3).description("\$var.total.dogs.big"),
 
-                aFieldDefinition().id(4).description("\$calc.sum(var.total.dogs)").build(),
-                aFieldDefinition().id(5).description("\$calc.sum(var.total)").build(),
+                aFieldDefinition().id(4).description("\$calc.sum(var.total.dogs)"),
+                aFieldDefinition().id(5).description("\$calc.sum(var.total)"),
         ).build()
 
         def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
                 .newField(definition, 1, 101, "10")
                 .newField(definition, 2, 102, "5")
                 .newField(definition, 3, 103, "2")
-                // calcs
+        // calcs
                 .newField(definition, 4, 104, null)
                 .newField(definition, 5, 105, null)
                 .build()
@@ -170,8 +169,8 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
     void "throw error when calculating instance with definition in invalid state"() {
         given:
         def definition = aDefinition().fieldDefinitions(
-                aFieldDefinition().id(2).description("\$calc.multiply(previous,2)").build(),
-                aFieldDefinition().id(3).description("\$calc.multiply(previous,2)").build(),
+                aFieldDefinition().id(2).description("\$calc.multiply(previous,2)"),
+                aFieldDefinition().id(3).description("\$calc.multiply(previous,2)"),
         ).build()
 
         def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
@@ -192,11 +191,11 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
     void "ignore invisible fields"() {
         given:
         def definition = aDefinition().fieldDefinitions(
-                aFieldDefinition().id(1).description("field1").build(),
-                aFieldDefinition().id(2).description("\$var.field2").build(),
-                aFieldDefinition().id(3).description("\$var.fieldwithsamename").build(),
-                aFieldDefinition().id(4).description("\$var.fieldwithsamename \$hint[should not be part of the message]").build(),
-                aFieldDefinition().id(5).description("\$calc.multiply(var.field2,var.fieldwithsamename)").build(),
+                aFieldDefinition().id(1).description("field1"),
+                aFieldDefinition().id(2).description("\$var.field2"),
+                aFieldDefinition().id(3).description("\$var.fieldwithsamename"),
+                aFieldDefinition().id(4).description("\$var.fieldwithsamename \$hint[should not be part of the message]"),
+                aFieldDefinition().id(5).description("\$calc.multiply(var.field2,var.fieldwithsamename)"),
         ).build()
 
         def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
@@ -217,8 +216,8 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
     void "ignore trailing zeros"() {
         given:
         def definition = aDefinition().fieldDefinitions(
-                aNumberFieldDefinition(2).id(1).description("\$var.field1", true).build(),
-                aFieldDefinition().id(2).description("\$calc.multiply(var.field1,280,10)").build(),
+                aFieldDefinition().id(1).description("\$number(2) \$var.field1"),
+                aFieldDefinition().id(2).description("\$calc.multiply(var.field1,280,10)"),
         ).build()
 
         def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")

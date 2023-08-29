@@ -14,14 +14,14 @@ class DefinitionBuilder {
         return builder
     }
 
-    static DefinitionBuilder aDefinition(id, name, description, version, FieldDefinition... fieldDefinitions) {
+    static DefinitionBuilder aDefinition(id, name, description, version, FieldDefinitionBuilder... fieldDefinitionsBuilder) {
         def builder = new DefinitionBuilder()
         builder.definition = new Definition().with {
             it.id = id
             it.name = name
             it.version = version
             it.description = description
-            it.fieldDefinitions = fieldDefinitions
+            it.fieldDefinitions = fieldDefinitionsBuilder.collect { fd -> fd.build() }
             it
         }
         return builder
@@ -49,6 +49,11 @@ class DefinitionBuilder {
 
     def fieldDefinitions(FieldDefinition... fieldDefinitions) {
         definition.fieldDefinitions = fieldDefinitions
+        this
+    }
+
+    def fieldDefinitions(FieldDefinitionBuilder... fieldDefinitions) {
+        definition.fieldDefinitions = fieldDefinitions.collect { fd -> fd.build() }
         this
     }
 

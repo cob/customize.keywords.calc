@@ -4,8 +4,6 @@ import spock.lang.Specification
 
 import static com.cultofbits.customizations.utils.DefinitionBuilder.aDefinition
 import static com.cultofbits.customizations.utils.FieldDefinitionBuilder.aFieldDefinition
-import static com.cultofbits.customizations.utils.FieldDefinitionBuilder.aNumberFieldDefinition
-
 
 class DefinitionCalculatorParsingStepTest extends Specification {
 
@@ -14,10 +12,10 @@ class DefinitionCalculatorParsingStepTest extends Specification {
 
         def definition = aDefinition()
                 .fieldDefinitions(
-                        aFieldDefinition().id(1).description("\$var.field1 dummy text").build(),
-                        aNumberFieldDefinition(2).id(2).description("\$var.field2 \$hint[some hint]", true).build(),
-                        aNumberFieldDefinition(2).id(3).description("\$var.some.var.structure \$hint[some hint]", true).build(),
-                        aNumberFieldDefinition(2).id(4).description(" \$hint[some hint] \$var.some.var.structure", true).build(),
+                        aFieldDefinition().id(1).description("\$var.field1 dummy text"),
+                        aFieldDefinition().id(2).description("\$number(2) \$var.field2 \$hint[some hint]"),
+                        aFieldDefinition().id(3).description("\$number(2) \$var.some.var.structure \$hint[some hint]"),
+                        aFieldDefinition().id(4).description("\$number(2) \$hint[some hint] \$var.some.var.structure"),
                 ).build()
 
         when:
@@ -34,10 +32,10 @@ class DefinitionCalculatorParsingStepTest extends Specification {
 
         def definition = aDefinition()
                 .fieldDefinitions(
-                        aFieldDefinition().id(1).description("\$var.field1 dummy text").build(),
-                        aFieldDefinition().id(2).description("\$number(2) \$var.field2 \$hint[some hint]").build(),
-                        aFieldDefinition().id(3).description("\$calc.multiply(var.field1,var.field2,10)").build(),
-                        aFieldDefinition().id(4).description("\$var.field4 \$calc.multiply(var.field1,10)").build(),
+                        aFieldDefinition().id(1).description("\$var.field1 dummy text"),
+                        aFieldDefinition().id(2).description("\$number(2) \$var.field2 \$hint[some hint]"),
+                        aFieldDefinition().id(3).description("\$calc.multiply(var.field1,var.field2,10)"),
+                        aFieldDefinition().id(4).description("\$var.field4 \$calc.multiply(var.field1,10)"),
                 ).build()
 
         when:
@@ -62,9 +60,9 @@ class DefinitionCalculatorParsingStepTest extends Specification {
         given:
         def definition = aDefinition()
                 .fieldDefinitions(
-                        aFieldDefinition().id(1).build(),
-                        aFieldDefinition().id(2).description("\$calc.multiply(previous,2)").build(),
-                        aFieldDefinition().id(3).description("\$calc.multiply(previous,4)").build(),
+                        aFieldDefinition().id(1),
+                        aFieldDefinition().id(2).description("\$calc.multiply(previous,2)"),
+                        aFieldDefinition().id(3).description("\$calc.multiply(previous,4)"),
                 ).build()
 
         when:
@@ -81,12 +79,12 @@ class DefinitionCalculatorParsingStepTest extends Specification {
     void "can process with subparts"() {
         given:
         def definition = aDefinition().fieldDefinitions(
-                aFieldDefinition().id(1).description("\$var.total.chickens").build(),
-                aFieldDefinition().id(2).description("\$var.total.dogs.small").build(),
-                aFieldDefinition().id(3).description("\$var.total.dogs.big").build(),
+                aFieldDefinition().id(1).description("\$var.total.chickens"),
+                aFieldDefinition().id(2).description("\$var.total.dogs.small"),
+                aFieldDefinition().id(3).description("\$var.total.dogs.big"),
 
-                aFieldDefinition().id(4).description("\$calc.sum(var.total.dogs)").build(),
-                aFieldDefinition().id(5).description("\$calc.sum(var.total)").build(),
+                aFieldDefinition().id(4).description("\$calc.sum(var.total.dogs)"),
+                aFieldDefinition().id(5).description("\$calc.sum(var.total)"),
         ).build()
 
         when:
@@ -103,11 +101,11 @@ class DefinitionCalculatorParsingStepTest extends Specification {
     void "collect field definitions with samve var"() {
         given:
         def definition = aDefinition().fieldDefinitions(
-                aFieldDefinition().id(1).description("field1").build(),
-                aFieldDefinition().id(2).description("\$var.field2").build(),
-                aFieldDefinition().id(3).description("\$var.fieldwithsamename").build(),
-                aFieldDefinition().id(4).description("\$var.fieldwithsamename").build(),
-                aFieldDefinition().id(5).description("\$calc.multiply(var.field2,var.fieldwithsamename)").build(),
+                aFieldDefinition().id(1).description("field1"),
+                aFieldDefinition().id(2).description("\$var.field2"),
+                aFieldDefinition().id(3).description("\$var.fieldwithsamename"),
+                aFieldDefinition().id(4).description("\$var.fieldwithsamename"),
+                aFieldDefinition().id(5).description("\$calc.multiply(var.field2,var.fieldwithsamename)"),
         ).build()
 
         when:
