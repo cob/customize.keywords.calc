@@ -1,1 +1,1 @@
-import("./cob/_calc.js");
+import "./cob/_calc.js";
