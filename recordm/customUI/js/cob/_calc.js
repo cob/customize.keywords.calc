@@ -4,7 +4,8 @@ cob.custom.customize.push(function (core, utils, ui) {
 
     function calc_automation(instance, presenter) {
         registerAndExecuteCalculation()
-        // Repeat 'executeCalculations' every 200ms to compensante not reacting to deletion of duplicate fiels (no event available to subscribe) or changes in top hierarchy (see specific TODO below)
+        // Repeat 'executeCalculations' every 200ms to compensante not reacting to deletion of duplicate fiels (no event available to subscribe)
+        // or changes in top hierarchy (see specific TODO below)
         setInterval(executeCalculations,2000)
 
         //=========================================================
@@ -42,8 +43,8 @@ cob.custom.customize.push(function (core, utils, ui) {
                 let argNames = getCalculationArgNames(calculationFp)
                 return argNames
                     .map( argName => isNaN(argName)
-                        ? getAllAplicableFpsForVarName(calculationFp, argName) // É uma variável, retorna todos os fp associados
-                        : argName * 1 // é uma constante numérica
+                        ? getAllAplicableFpsForVarName(calculationFp, argName) //Its a variable. It will return all associated field presenters
+                        : argName * 1 // its a numeric constant
                     )
                     .flat()
 
@@ -75,17 +76,20 @@ cob.custom.customize.push(function (core, utils, ui) {
             let calculations = getAllCalculationsFields()
             calculations.forEach(
                 calculation => calculation.args.forEach( arg => {
-                    // eventos de field changes de qualquer das variáveis (ou seja, sempre que o argumento não for um número)
+                    // events of field changes oe any variable meaning every time the argument is not a number
                     if(isNaN(arg)) {
                         if(arg.field.fieldDefinition.duplicable) {
-                            //O caso de campos duplicáveis é diferente porque é necessário voltar a registar tudo e só depois calcular
+                            // The duplicates field case is different because we need to register everything back and then calculate
                             presenter.onFieldChange(arg.field.fieldDefinition.name, () => registerAndExecuteCalculation() )
-                            // TODO: reagir à remoção de um duplicado
+                            // TODO: react to duplicate field removal
                         } else {
-                            //No caso de campos normais só é necessário calcular tudo quando uma dependência muda
+
+                            // In the case of normal fields its necessary to calculate everything when a dependency changes
                             presenter.onFieldChange(arg, () => executeCalculations() )
                         }
-                        //Caso o campo tenha uma condição também temos de reagir a mudanças na condição. TODO: reagir a toda a cadeia superior (sempre que haja uma condição ou seja duplicável) e não apenas condição directa
+
+                        // In case th field has a condition we also have to react to changes in the condition
+                        // TODO: reagir a toda a cadeia superior (sempre que haja uma condição ou seja duplicável) e não apenas condição directa
                         let conditionFp = presenter.findFieldPs(fp => fp.field.id === arg.field.fieldDefinition.conditionSource)
                         if(conditionFp.length) presenter.onFieldChange(conditionFp[0].field.fieldDefinition.name, registerAndExecuteCalculation )
 
@@ -103,7 +107,7 @@ cob.custom.customize.push(function (core, utils, ui) {
             calculations.forEach( calculation => {
                 let t0parcial = performance.now();
                 let novoResultado = "" + evaluateExpression(calculation)
-                if(calculation.fp.getValue() != novoResultado ) {
+                if(calculation.fp.getValue() !== novoResultado ) {
                     calculation.fp.setValue(novoResultado)
                     if(debug) console.groupCollapsed("[Calculations] updated field ", calculation.fp.field.fieldDefinition.id, " '", calculation.fp.field.fieldDefinition.name, "' with ",novoResultado)
                     if(debug) console.debug("[Calculations]", calculation.op)
@@ -144,19 +148,23 @@ cob.custom.customize.push(function (core, utils, ui) {
                 } else if (calculation.op === "subtract" && values.length === 2) {
                     resultado = new BigDecimal(values[0]);
                     resultado = resultado.subtract(new BigDecimal(values[1]))
+
                 } else if (calculation.op === "diffDays" && values.length === 2) {
                     resultado = new BigDecimal(values[0]);
                     resultado = resultado.subtract(new BigDecimal(values[1]))
                     resultado = resultado.divide(24*60*60*1000)
+
                 } else if (calculation.op === "diffHours" && values.length === 2) {
                     resultado = new BigDecimal(values[0]);
                     resultado = resultado.subtract(new BigDecimal(values[1]))
                     resultado = resultado.divide(60*60*1000)
+
                 } else if (calculation.op === "diffMinutes" && values.length === 2) {
                     resultado = new BigDecimal(values[0]);
                     resultado = resultado.subtract(new BigDecimal(values[1]))
                     resultado = resultado.divide(60*1000)
                 }
+
                 return resultado
             }
         }
