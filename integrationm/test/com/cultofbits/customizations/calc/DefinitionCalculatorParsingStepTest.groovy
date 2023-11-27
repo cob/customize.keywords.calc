@@ -1,6 +1,5 @@
 package com.cultofbits.customizations.calc
 
-import com.cultofbits.integrationm.service.actionpack.RecordmActionPack
 import spock.lang.Specification
 
 import static com.cultofbits.customizations.utils.DefinitionBuilder.aDefinition
@@ -20,7 +19,7 @@ class DefinitionCalculatorParsingStepTest extends Specification {
                 ).build()
 
         when:
-        def calculator = new DefinitionCalculator(definition, Mock(RecordmActionPack.class))
+        def calculator = new DefinitionCalculator(definition)
 
         then:
         calculator.fdVarsMapByVarName["var.field1"].collect { it.id }.join(",") == "1"
@@ -40,7 +39,7 @@ class DefinitionCalculatorParsingStepTest extends Specification {
                 ).build()
 
         when:
-        def calculator = new DefinitionCalculator(definition, Mock(RecordmActionPack.class))
+        def calculator = new DefinitionCalculator(definition)
 
         then:
         calculator.defName == definition.name
@@ -67,7 +66,7 @@ class DefinitionCalculatorParsingStepTest extends Specification {
                 ).build()
 
         when:
-        def calculator = new DefinitionCalculator(definition, Mock(RecordmActionPack.class))
+        def calculator = new DefinitionCalculator(definition)
 
         then:
         calculator.fdCalcExprMapById[2].operation == "multiply"
@@ -89,7 +88,7 @@ class DefinitionCalculatorParsingStepTest extends Specification {
         ).build()
 
         when:
-        def calculator = new DefinitionCalculator(definition, Mock(RecordmActionPack.class))
+        def calculator = new DefinitionCalculator(definition)
 
         then:
         calculator.fdCalcExprMapById[4].operation == "sum"
@@ -110,7 +109,7 @@ class DefinitionCalculatorParsingStepTest extends Specification {
         ).build()
 
         when:
-        def calculator = new DefinitionCalculator(definition, Mock(RecordmActionPack.class))
+        def calculator = new DefinitionCalculator(definition)
 
         then:
         calculator.fdVarsMapByVarName["var.fieldwithsamename"].collect { it.id } == [3, 4]

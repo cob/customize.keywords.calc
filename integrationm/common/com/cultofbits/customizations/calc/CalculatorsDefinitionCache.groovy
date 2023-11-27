@@ -2,8 +2,7 @@ package com.cultofbits.customizations.calc
 
 import com.cultofbits.integrationm.service.actionpack.RecordmActionPack
 import com.cultofbits.integrationm.service.dictionary.recordm.RecordmMsg
-import com.google.common.cache.Cache
-import com.google.common.cache.CacheBuilder
+import com.google.common.cache.*
 
 class CalculatorsDefinitionCache {
 
@@ -15,12 +14,7 @@ class CalculatorsDefinitionCache {
         String definitionName = recordmMsg.type
 
         def calculator = getFromCache(definitionName, recordmActionPack, log)
-
-        def sameDefVersion = calculator.defVersion == recordmMsg.definitionVersion
-        // log.info("calculator.defVersion:", calculator?.defVersion)
-        // log.info("recordmMsg.definitionVersion:", recordmMsg?.definitionVersion)
-
-        if (sameDefVersion) {
+        if (calculator.defVersion == recordmMsg.definitionVersion) {
             return calculator
 
         } else {
@@ -32,6 +26,6 @@ class CalculatorsDefinitionCache {
     private static DefinitionCalculator getFromCache(String definitionName, recordmActionPack, log) {
         cacheOfCalcFieldsForDefinition.get(
                 definitionName,
-                { recordmActionPack.getDefinition(definitionName)?.with { r -> new DefinitionCalculator(r.getBody(), recordmActionPack, log) } })
+                { recordmActionPack.getDefinition(definitionName)?.with { r -> new DefinitionCalculator(r.getBody(), log) } })
     }
 }

@@ -42,15 +42,13 @@ class CalculatorsDefinitionCacheTest extends Specification {
     void "can get latest version of definition from recordm"() {
         given: "definition version is different from recordm message"
 
-        def rmActionPack = Mock(RecordmActionPack.class)
-
         def definitionName = "the definition"
 
         def definition = DefinitionBuilder.aDefinition().name(definitionName).build()
 
         CalculatorsDefinitionCache.cacheOfCalcFieldsForDefinition.put(
                 definitionName,
-                new DefinitionCalculator(definition, rmActionPack))
+                new DefinitionCalculator(definition))
 
         def msg = new RecordmMsg([
                 type             : definitionName,
@@ -66,12 +64,13 @@ class CalculatorsDefinitionCacheTest extends Specification {
         def reusableResponse = Mock(ReusableResponse.class)
         reusableResponse.getBody() >> definitionV2
 
-        rmActionPack.getDefinition(definitionName) >> reusableResponse
+        def recordm = Mock(RecordmActionPack.class)
+        recordm.getDefinition(definitionName) >> reusableResponse
 
         def log = Object.class
 
         when:
-        def calculator = CalculatorsDefinitionCache.getCalculatorForDefinition(msg, rmActionPack, log)
+        def calculator = CalculatorsDefinitionCache.getCalculatorForDefinition(msg, recordm, log)
 
         then:
         calculator.defName == msg.type
