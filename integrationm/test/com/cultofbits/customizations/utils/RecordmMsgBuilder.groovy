@@ -8,6 +8,7 @@ import org.apache.commons.lang.math.RandomUtils
 class RecordmMsgBuilder {
 
     def msgBody = [
+            id         : null,
             user       : null,
             type       : null,
             action     : null,
@@ -135,6 +136,10 @@ class RecordmMsgBuilder {
     }
 
     RecordmMsg build() {
+        if (msgBody.id == null) {
+            msgBody.id = new Random().nextInt()
+        }
+
         new RecordmMsg(msgBody)
     }
 }

@@ -1,7 +1,9 @@
 package com.cultofbits.customizations.calc
 
+import com.cultofbits.integrationm.service.actionpack.RecordmActionPack
 import com.cultofbits.integrationm.service.dictionary.recordm.Definition
 import com.cultofbits.integrationm.service.dictionary.recordm.FieldDefinition
+import com.cultofbits.integrationm.service.dictionary.recordm.RecordmInstance
 import com.cultofbits.integrationm.service.dictionary.recordm.RecordmMsg
 
 import java.lang.reflect.Field
@@ -26,18 +28,23 @@ class DefinitionCalculator {
 
     // log4j
     private Object log
+    private final RecordmActionPack rmActionPack
 
-    DefinitionCalculator(definition) {
+    DefinitionCalculator(definition, RecordmActionPack rmActionPack) {
         this.defName = definition.name
         this.defVersion = definition.version
+
+        this.rmActionPack = rmActionPack
 
         this.processDefinition(definition)
     }
 
-    DefinitionCalculator(definition, log) {
-        this.log = log
+    DefinitionCalculator(definition, RecordmActionPack rmActionPack, log) {
         this.defName = definition.name
         this.defVersion = definition.version
+
+        this.log = log
+        this.rmActionPack = rmActionPack
 
         this.processDefinition(definition)
     }
@@ -86,7 +93,7 @@ class DefinitionCalculator {
                                         .collect { it -> extractVar(it) }
                         )
                     } else {
-                        finalArgs << arg
+                        finalArgs << arg.trim()
                     }
                 }
 
@@ -133,17 +140,24 @@ class DefinitionCalculator {
                     "errorMessage:${invalidStateMsg} }}")
         }
 
-        if (recordmMsg.action != "add" && !fdCalcExprMapById.values().any { it -> recordmMsg.field(it.fieldDefinition.name).changed() }) {
+        if (fdCalcExprMapById.isEmpty()) {
             return [:]
         }
 
-        def calcContext = new CalcContext(recordmMsg)
+        if (recordmMsg.user == "integrationm" && recordmMsg.action != "add" && !fdCalcExprMapById.values().any { it -> recordmMsg.field(it.fieldDefinition.name).changed() }) {
+            return [:]
+        }
 
-        logMessage("[_calc] instanceId=${calcContext.recordmMsg.instance.id} \n" +
+        def instance = rmActionPack.get(recordmMsg.id).getBody()
+        def calcContext = new CalcContext(instance)
+
+        logMessage("[_calc] instanceId=${calcContext.recordmInstance.id} \n" +
                 "fdVarsMapByVarName=\n    " + fdVarsMapByVarName.collect { k, v -> "${k} -> ${v.id}" }.join("\n    ") + "\n\n" +
-                "fieldMapByFieldDefId=\n    " + calcContext.fieldMapByFieldDefId.collect { k, v -> "${k} -> ${v}" }.join("\n    ") + "\n")
+                "fieldMapByFieldDefId=\n    " + calcContext.fieldMapByFieldDefId.collect { k, v -> "${k} -> ${v}" }.join("\n    ") + "\n" +
+                "fdCalcExprMapById=\n    " + fdCalcExprMapById.collect { k, v -> "${k} -> ${v}" }.join("\n    ")
+        )
 
-        recordmMsg.instance.getFields().inject([:] as Map<String, String>) { map, Map<String, Object> field ->
+        instance.getFields().inject([:] as Map<String, String>) { map, Map<String, Object> field ->
             def newValue = getFieldValue(field, calcContext, new ArrayList())
 
             if (newValue != field.value) {
@@ -161,7 +175,6 @@ class DefinitionCalculator {
 
         def calcExpr = fdCalcExprMapById[field.fieldDefinition.id]
 
-        // There isn't anything to calculate, it is just a normal field
         if (calcExpr == null) {
             return field.value
         }
@@ -256,7 +269,7 @@ class DefinitionCalculator {
         result = result.stripTrailingZeros().toPlainString()
         calcContext.cache[field.fieldDefinition.id] = result
 
-        logMessage("[_calc] instanceId=${calcContext.recordmMsg.instance.id} \n" +
+        logMessage("[_calc] instanceId=${calcContext.recordmInstance.id} \n" +
                 "calcExpr=${calcExpr}" +
                 "\n   fieldId=${field.id} fieldDefinitionName=${field.fieldDefinition.name} " +
                 "\n   args=${calcExpr.args} " +
@@ -290,14 +303,14 @@ class DefinitionCalculator {
      * Auxiliary class that holds instance information and provides methods to facilitate the calculation
      */
     static class CalcContext {
-        RecordmMsg recordmMsg
         Map<Integer, List<Map<String, Object>>> fieldMapByFieldDefId
         Map<Integer, BigDecimal> cache
+        RecordmInstance recordmInstance
 
-        CalcContext(recordmMsg) {
-            this.recordmMsg = recordmMsg
+        CalcContext(recordmInstance) {
             this.cache = [:]
-            this.fieldMapByFieldDefId = recordmMsg.instance.getFields().inject([:] as Map<Integer, List<Map<String, Object>>>) { map, field ->
+            this.recordmInstance = recordmInstance
+            this.fieldMapByFieldDefId = recordmInstance.getFields().inject([:] as Map<Integer, List<Map<String, Object>>>) { map, field ->
                 def fieldDefIdEntry = map[field.fieldDefinition.id]
                 if (fieldDefIdEntry != null) {
                     fieldDefIdEntry << field

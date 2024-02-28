@@ -1,6 +1,9 @@
 package com.cultofbits.customizations.calc
 
+import com.cultofbits.customizations.utils.InstanceBuilder
 import com.cultofbits.customizations.utils.RecordmMsgBuilder
+import com.cultofbits.integrationm.service.actionpack.RecordmActionPack
+import com.cultofbits.integrationm.service.dictionary.ReusableResponse
 import spock.lang.Specification
 
 import static com.cultofbits.customizations.utils.DefinitionBuilder.aDefinition
@@ -25,12 +28,24 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
                 .newField(definition, 1, 101, "1000")
                 .newField(definition, 2, 102, "1")
                 .newField(definition, 3, 103, "2")
-                .newField(definition, 4, 104, null)
-                .newField(definition, 5, 105, null)
                 .build()
 
+        def instance = InstanceBuilder.anInstance(definition, recordmMsg.id)
+                .withField(definition.getField(1), 101, "1000")
+                .withField(definition.getField(2), 102, "1")
+                .withField(definition.getField(3), 103, "2")
+                .withField(definition.getField(4), 104, null)
+                .withField(definition.getField(5), 105, null)
+                .build()
+
+        def reusableResponse = Mock(ReusableResponse.class)
+        reusableResponse.getBody() >> instance
+
+        def rmActionPack = Mock(RecordmActionPack.class)
+        rmActionPack.get(recordmMsg.id) >> reusableResponse
+
         when:
-        def calculator = new DefinitionCalculator(definition)
+        def calculator = new DefinitionCalculator(definition, rmActionPack)
         def updateMap = calculator.calculate(recordmMsg)
 
         then:
@@ -50,13 +65,24 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
         def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
                 .newField(definition, 1, 101, "1000")
                 .newField(definition, 2, 102, "50")
-                .newField(definition, 3, 103, null)
-                .newField(definition, 4, 104, null)
-                .newField(definition, 5, 105, null)
                 .build()
 
+        def instance = InstanceBuilder.anInstance(definition, recordmMsg.id)
+                .withField(definition.getField(1), 101, "1000")
+                .withField(definition.getField(2), 102, "50")
+                .withField(definition.getField(3), 103, null)
+                .withField(definition.getField(4), 104, null)
+                .withField(definition.getField(5), 105, null)
+                .build()
+
+        def reusableResponse = Mock(ReusableResponse.class)
+        reusableResponse.getBody() >> instance
+
+        def rmActionPack = Mock(RecordmActionPack.class)
+        rmActionPack.get(recordmMsg.id) >> reusableResponse
+
         when:
-        def calculator = new DefinitionCalculator(definition)
+        def calculator = new DefinitionCalculator(definition, rmActionPack)
         def updateMap = calculator.calculate(recordmMsg)
 
         then:
@@ -77,13 +103,24 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
         def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
                 .newField(definition, 1, 101, "1000")
                 .newField(definition, 2, 102, "50")
-                .newField(definition, 3, 103, null)
-                .newField(definition, 4, 104, null)
-                .newField(definition, 5, 105, null)
                 .build()
 
+        def instance = InstanceBuilder.anInstance(definition, recordmMsg.id)
+                .withField(definition.getField(1), 101, "1000")
+                .withField(definition.getField(2), 102, "50")
+                .withField(definition.getField(3), 103, null)
+                .withField(definition.getField(4), 104, null)
+                .withField(definition.getField(5), 105, null)
+                .build()
+
+        def reusableResponse = Mock(ReusableResponse.class)
+        reusableResponse.getBody() >> instance
+
+        def rmActionPack = Mock(RecordmActionPack.class)
+        rmActionPack.get(recordmMsg.id) >> reusableResponse
+
         when:
-        def calculator = new DefinitionCalculator(definition)
+        def calculator = new DefinitionCalculator(definition, rmActionPack)
         def updateMap = calculator.calculate(recordmMsg)
 
         then:
@@ -102,11 +139,22 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
         def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
                 .newField(definition, 1, 101, "1000")
                 .newField(definition, 2, 102, "50")
-                .newField(definition, 3, 103, null)
                 .build()
 
+        def instance = InstanceBuilder.anInstance(definition, recordmMsg.id)
+                .withField(definition.getField(1), 101, "1000")
+                .withField(definition.getField(2), 102, "50")
+                .withField(definition.getField(3), 103, null)
+                .build()
+
+        def reusableResponse = Mock(ReusableResponse.class)
+        reusableResponse.getBody() >> instance
+
+        def rmActionPack = Mock(RecordmActionPack.class)
+        rmActionPack.get(recordmMsg.id) >> reusableResponse
+
         when:
-        def calculator = new DefinitionCalculator(definition)
+        def calculator = new DefinitionCalculator(definition, rmActionPack)
         calculator.calculate(recordmMsg)
 
         then:
@@ -124,12 +172,22 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
 
         def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
                 .newField(definition, 1, 101, "1000")
-                .newField(definition, 2, 102, null)
-                .newField(definition, 3, 103, null)
                 .build()
 
+        def instance = InstanceBuilder.anInstance(definition, recordmMsg.id)
+                .withField(definition.getField(1), 101, "1000")
+                .withField(definition.getField(2), 102, null)
+                .withField(definition.getField(3), 103, null)
+                .build()
+
+        def reusableResponse = Mock(ReusableResponse.class)
+        reusableResponse.getBody() >> instance
+
+        def rmActionPack = Mock(RecordmActionPack.class)
+        rmActionPack.get(recordmMsg.id) >> reusableResponse
+
         when:
-        def calculator = new DefinitionCalculator(definition)
+        def calculator = new DefinitionCalculator(definition, rmActionPack)
         def updateMap = calculator.calculate(recordmMsg)
 
         then:
@@ -152,13 +210,24 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
                 .newField(definition, 1, 101, "10")
                 .newField(definition, 2, 102, "5")
                 .newField(definition, 3, 103, "2")
-        // calcs
-                .newField(definition, 4, 104, null)
-                .newField(definition, 5, 105, null)
                 .build()
 
+        def instance = InstanceBuilder.anInstance(definition, recordmMsg.id)
+                .withField(definition.getField(1), 101, "10")
+                .withField(definition.getField(2), 102, "5")
+                .withField(definition.getField(3), 103, "2")
+                .withField(definition.getField(4), 104, null)
+                .withField(definition.getField(5), 105, null)
+                .build()
+
+        def reusableResponse = Mock(ReusableResponse.class)
+        reusableResponse.getBody() >> instance
+
+        def rmActionPack = Mock(RecordmActionPack.class)
+        rmActionPack.get(recordmMsg.id) >> reusableResponse
+
         when:
-        def calculator = new DefinitionCalculator(definition)
+        def calculator = new DefinitionCalculator(definition, rmActionPack)
         def updateMap = calculator.calculate(recordmMsg)
 
         then:
@@ -174,17 +243,15 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
         ).build()
 
         def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
-                .newField(definition, 2, 102, null)
-                .newField(definition, 3, 103, null)
                 .build()
 
         when:
-        def calculator = new DefinitionCalculator(definition)
+        def calculator = new DefinitionCalculator(definition, Mock(RecordmActionPack.class))
         calculator.calculate(recordmMsg)
 
         then:
         def e = thrown(IllegalStateException)
-        e.getMessage() == "[_calc] instanceId=null definition is in invalid state to calculate {{errorMessage:No previous field available for field " +
+        e.getMessage() == "[_calc] instanceId=${recordmMsg.id} definition is in invalid state to calculate {{errorMessage:No previous field available for field " +
                 "FieldDefinition{id=2, name='field-definition-2', description='\$calc.multiply(previous,2)', duplicable=false, required=null} }}"
     }
 
@@ -202,11 +269,23 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
                 .newField(definition, 1, 101, "1000")
                 .newField(definition, 2, 102, "1")
                 .newField(definition, 3, 103, "10")
-                .newField(definition, 5, 105, null)
                 .build()
 
+        def instance = InstanceBuilder.anInstance(definition, recordmMsg.id)
+                .withField(definition.getField(1), 101, "1000")
+                .withField(definition.getField(2), 102, "1")
+                .withField(definition.getField(3), 103, "10")
+                .withField(definition.getField(5), 105, null)
+                .build()
+
+        def reusableResponse = Mock(ReusableResponse.class)
+        reusableResponse.getBody() >> instance
+
+        def rmActionPack = Mock(RecordmActionPack.class)
+        rmActionPack.get(recordmMsg.id) >> reusableResponse
+
         when:
-        def calculator = new DefinitionCalculator(definition)
+        def calculator = new DefinitionCalculator(definition, rmActionPack)
         def updateMap = calculator.calculate(recordmMsg)
 
         then:
@@ -222,14 +301,84 @@ class DefinitionCalculatorCalculationStepTest extends Specification {
 
         def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "add")
                 .newField(definition, 1, 101, "0.4")
-                .newField(definition, 2, 102, null)
                 .build()
 
+        def instance = InstanceBuilder.anInstance(definition, recordmMsg.id)
+                .withField(definition.getField(1), 101, "0.4")
+                .withField(definition.getField(2), 102, null)
+                .build()
+
+        def reusableResponse = Mock(ReusableResponse.class)
+        reusableResponse.getBody() >> instance
+
+        def rmActionPack = Mock(RecordmActionPack.class)
+        rmActionPack.get(recordmMsg.id) >> reusableResponse
+
         when:
-        def calculator = new DefinitionCalculator(definition)
+        def calculator = new DefinitionCalculator(definition, rmActionPack)
         def updateMap = calculator.calculate(recordmMsg)
 
         then:
         updateMap["id:102"] == "1120"
+    }
+
+    void 'calculate when message is update but user is not integrationm (bulk update)' (){
+        given:
+        def definition = aDefinition().fieldDefinitions(
+                aFieldDefinition().id(1).description("\$number(2) \$var.field1"),
+                aFieldDefinition().id(2).description("\$calc.multiply(var.field1,280,10)"),
+        ).build()
+
+        def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "update")
+                // no fields have changed
+                .build()
+
+        def instance = InstanceBuilder.anInstance(definition, recordmMsg.id)
+                .withField(definition.getField(1), 101, "0.4")
+                .withField(definition.getField(2), 102, null)
+                .build()
+
+        def reusableResponse = Mock(ReusableResponse.class)
+        reusableResponse.getBody() >> instance
+
+        def rmActionPack = Mock(RecordmActionPack.class)
+        rmActionPack.get(recordmMsg.id) >> reusableResponse
+
+        when:
+        def calculator = new DefinitionCalculator(definition, rmActionPack)
+        def updateMap = calculator.calculate(recordmMsg)
+
+        then:
+        updateMap["id:102"] == "1120"
+    }
+
+    void 'calculate when message = update, user = integrationm, but some fields have changed' (){
+        given:
+        def definition = aDefinition().fieldDefinitions(
+                aFieldDefinition().id(1).description("\$number(2) \$var.field1"),
+                aFieldDefinition().id(2).description("\$calc.multiply(var.field1,280,10)"),
+        ).build()
+
+        def recordmMsg = RecordmMsgBuilder.aMessage("admin", definition, "update")
+                .updatedField(definition.getField(1), "40", "0.4")
+                .build()
+
+        def instance = InstanceBuilder.anInstance(definition, recordmMsg.id)
+                .withField(definition.getField(1), 101, "40")
+                .withField(definition.getField(2), 102, null)
+                .build()
+
+        def reusableResponse = Mock(ReusableResponse.class)
+        reusableResponse.getBody() >> instance
+
+        def rmActionPack = Mock(RecordmActionPack.class)
+        rmActionPack.get(recordmMsg.id) >> reusableResponse
+
+        when:
+        def calculator = new DefinitionCalculator(definition, rmActionPack)
+        def updateMap = calculator.calculate(recordmMsg)
+
+        then:
+        updateMap["id:102"] == "112000"
     }
 }
