@@ -93,7 +93,7 @@ class DefinitionCalculator {
                                         .collect { it -> extractVar(it) }
                         )
                     } else {
-                        finalArgs << arg
+                        finalArgs << arg.trim()
                     }
                 }
 
@@ -138,6 +138,10 @@ class DefinitionCalculator {
         if (invalidState) {
             throw new IllegalStateException("[_calc] instanceId=${recordmMsg.id} definition is in invalid state to calculate {{" +
                     "errorMessage:${invalidStateMsg} }}")
+        }
+
+        if (fdCalcExprMapById.isEmpty()) {
+            return [:]
         }
 
         if (recordmMsg.user == "integrationm" && recordmMsg.action != "add" && !fdCalcExprMapById.values().any { it -> recordmMsg.field(it.fieldDefinition.name).changed() }) {
