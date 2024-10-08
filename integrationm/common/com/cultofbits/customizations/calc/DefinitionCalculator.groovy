@@ -144,10 +144,6 @@ class DefinitionCalculator {
             return [:]
         }
 
-        if (recordmMsg.user == "integrationm" && recordmMsg.action != "add" && !fdCalcExprMapById.values().any { it -> recordmMsg.field(it.fieldDefinition.name).changed() }) {
-            return [:]
-        }
-
         def instance = rmActionPack.get(recordmMsg.id).getBody()
         def calcContext = new CalcContext(instance)
 
