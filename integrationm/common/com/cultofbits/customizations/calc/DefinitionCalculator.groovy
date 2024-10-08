@@ -156,7 +156,12 @@ class DefinitionCalculator {
         instance.getFields().inject([:] as Map<String, String>) { map, Map<String, Object> field ->
             def newValue = getFieldValue(field, calcContext, new ArrayList())
 
-            if (newValue != field.value) {
+            // If the field has an id negative means it's like a new field so integration resource wont be able
+            // to find the field. we'll use the name, otherwise fallback to the id
+            if (field.id < 0) {
+                map << [("${field.fieldDefinition.name}".toString()): newValue]
+
+            } else {
                 map << [("id:${field.id}".toString()): newValue]
             }
 
