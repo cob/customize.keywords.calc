@@ -6,7 +6,6 @@ import com.cultofbits.integrationm.service.dictionary.recordm.FieldDefinition
 import com.cultofbits.integrationm.service.dictionary.recordm.RecordmInstance
 import com.cultofbits.integrationm.service.dictionary.recordm.RecordmMsg
 
-import java.lang.reflect.Field
 import java.math.RoundingMode
 
 class DefinitionCalculator {
@@ -313,10 +312,12 @@ class DefinitionCalculator {
             this.recordmInstance = recordmInstance
             this.fieldMapByFieldDefId = recordmInstance.getFields().inject([:] as Map<Integer, List<Map<String, Object>>>) { map, field ->
                 def fieldDefIdEntry = map[field.fieldDefinition.id]
-                if (fieldDefIdEntry != null) {
-                    fieldDefIdEntry << field
-                } else {
-                    map << [(field.fieldDefinition.id): [field]]
+                if (field.id > 0) {
+                    if (fieldDefIdEntry != null) {
+                        fieldDefIdEntry << field
+                    } else {
+                        map << [(field.fieldDefinition.id): [field]]
+                    }
                 }
                 map
             }
