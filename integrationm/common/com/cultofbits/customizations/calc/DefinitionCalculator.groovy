@@ -254,7 +254,7 @@ class DefinitionCalculator {
 
                 }
                 break;
-            case "diifMinutes":
+            case "diffMinutes":
                 if (flattenArgValues.size() == 2) {
                     result = flattenArgValues[0]
                     result = result.subtract(flattenArgValues[1])
