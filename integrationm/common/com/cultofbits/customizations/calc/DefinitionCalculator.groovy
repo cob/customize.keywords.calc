@@ -262,7 +262,7 @@ class DefinitionCalculator {
                 }
                 break;
             default:
-                throw new IllegalArgumentException("[_calc] Unknown operation instance instanceId=${calcContext.recordmMsg.instance.id} " +
+                throw new IllegalArgumentException("[_calc] Unknown operation instance instanceId=${calcContext.recordmInstance.id} " +
                         "operation=${calcExpr.operation}")
         }
 
